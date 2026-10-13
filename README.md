@@ -25,6 +25,8 @@ spring.datasource.username=postgres
 spring.datasource.password=PASSWORD
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
+```
 
+### Run
 cd backend
 .\mvnw.cmd spring-boot:run
