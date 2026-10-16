@@ -1,10 +1,350 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>GreenDriveEV</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreenDriveEV — Find your next electric drive</title>
+
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <h1>Welcome to GreenDriveEV</h1>
-    <p>Frontend coming soon.</p>
-</body>
-</html>
+
+    <!-- Nav Bar -->
+    <header class="navbar">
+        <div class="wrap navinner">
+
+            <!-- name -->
+            <div class="brand">
+                <span>GreenDrive<em>EV</em></span>
+            </div>
+
+            <!-- Nav Links -->
+            <nav class="navlinks">
+                <span class="navlink">Shop EVs</span>
+                <span class="navlink">Why GreenDrive</span>
+                <span class="navlink">Finance</span>
+                <span class="navlink">Reviews</span>
+            </nav>
+
+            <!-- Nav Actions -->
+            <div class="navactions">
+
+                <!-- Cart Button -->
+                <button class="iconbtn" aria-label="Shopping cart">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 9H6"/>
+                        <circle cx="10" cy="20" r="1"/>
+                        <circle cx="18" cy="20" r="1"/>
+                    </svg>
+                    <span class="count" id="cartCount">0</span>
+                </button>
+
+                <!-- Explore button-->
+                <button class="btn btn-primary">Explore inventory</button>
+
+                <!-- Sign In button-->
+                <button class="signin-btn">
+                    Sign in
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <main id="home">
+        <section class="hero">
+            <div class="wrap">
+
+                <!-- Hero Panel -->
+                <div class="hero-panel">
+
+                    <!-- Hero Copy -->
+                    <div class="hero-copy">
+                        <div class="eyebrow">The electric difference</div>
+                        <h1>Find your next <span>electric</span> drive.</h1>
+                        <p>Great EVs, honest information, and a buying experience designed around you. Make your next move a smarter one.</p>
+
+                        <div class="hero-ctas">
+                            <button class="btn btn-primary">Explore our EVs <span>↗</span></button>
+                            <button class="btn btn-light">Why go electric?</button>
+                        </div>
+
+                        <div class="hero-proof">
+                            <div class="avatars">
+                                <i>JM</i><i>AK</i><i>SL</i><i>+</i>
+                            </div>
+                            <span>
+                                <b>1,200+ happy drivers</b><br>
+                                making the switch with confidence
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Hero Visual (empty) -->
+                    <div class="hero-visual"></div>
+
+                </div>
+
+                <!-- Search Bar -->
+                <div class="searchbar" aria-label="Find a vehicle">
+
+                    <div class="search-field">
+                        <label for="searchText">Find your EV</label>
+                        <input id="searchText" placeholder="Try Tesla Model Y, Hyundai...">
+                    </div>
+
+                    <div class="search-field">
+                        <label for="makeFilter">Make</label>
+                        <select id="makeFilter">
+                            <option value="">All makes</option>
+                            <option>Tesla</option>
+                            <option>Hyundai</option>
+                            <option>Kia</option>
+                            <option>Polestar</option>
+                            <option>Ford</option>
+                        </select>
+                    </div>
+
+                    <div class="search-field">
+                        <label for="typeFilter">Body style</label>
+                        <select id="typeFilter">
+                            <option value="">All styles</option>
+                            <option>SUV</option>
+                            <option>Sedan</option>
+                            <option>Hatchback</option>
+                        </select>
+                    </div>
+
+                    <div class="search-field">
+                        <label for="priceFilter">Max. budget</label>
+                        <select id="priceFilter">
+                            <option value="">Any price</option>
+                            <option value="40000">$40,000</option>
+                            <option value="50000">$50,000</option>
+                            <option value="60000">$60,000</option>
+                            <option value="70000">$70,000</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary">Find my EV <span>→</span></button>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Inventory Section -->
+        <section class="section" id="inventory">
+            <div class="wrap">
+
+                <div class="section-head">
+                    <div>
+                        <div class="eyebrow">Your next chapter starts here</div>
+                        <h2>Explore our electric lineup</h2>
+                        <p>Handpicked electric vehicles for every kind of journey.</p>
+                    </div>
+                    <span class="text-link">View all vehicles <span>→</span></span>
+                </div>
+
+                <div class="filterrow">
+                    <button class="chip active" data-chip="">All vehicles</button>
+                    <button class="chip" data-chip="SUV">Electric SUVs</button>
+                    <button class="chip" data-chip="Sedan">Sedans</button>
+                    <button class="chip" data-chip="Pre-owned">Pre-owned</button>
+                    <button class="chip" data-chip="New arrival">New arrivals</button>
+                </div>
+
+                <div class="vehicle-grid" id="vehicleGrid">
+                    <!-- Vehicle cards -->
+                </div>
+
+            </div>
+        </section>
+
+        
+
+        <!-- Calculator -->
+        <section class="section" id="calculator">
+            <div class="wrap">
+
+                <div class="feature-panel">
+
+                    <div>
+                        <div class="eyebrow">Make the numbers make sense</div>
+                        <h2>Your EV should fit your life — and your budget.</h2>
+                        <p>Get a quick idea of what your monthly payment could look like. Adjust the numbers to explore an estimate that feels comfortable.</p>
+
+                        <div class="feature-list">
+                            <div><span class="check">✓</span> Flexible down payment</div>
+                            <div><span class="check">✓</span> Choose your term</div>
+                            <div><span class="check">✓</span> Clear monthly estimate</div>
+                            <div><span class="check">✓</span> No commitment</div>
+                        </div>
+
+                        <small style="font-size:10px;color:#7a887f">Illustrative estimate only. Actual financing terms may vary.</small>
+                    </div>
+
+                    <div class="calculator">
+                        <h3>Monthly payment calculator</h3>
+                        <p>Personalize your estimate in seconds.</p>
+
+                        <div class="calc-row">
+                            <div>
+                                <label class="calc-label" for="calcPrice">Vehicle price (CAD)</label>
+                                <input class="calc-input" id="calcPrice" type="number" value="48990" min="0">
+                            </div>
+
+                            <div>
+                                <label class="calc-label" for="calcDown">Down payment (CAD)</label>
+                                <input class="calc-input" id="calcDown" type="number" value="5000" min="0">
+                            </div>
+
+                            <div>
+                                <label class="calc-label" for="calcRate">Interest rate (%)</label>
+                                <input class="calc-input" id="calcRate" type="number" value="6.99" min="0" step=".1">
+                            </div>
+
+                            <div>
+                                <label class="calc-label" for="calcTerm">Loan term</label>
+                                <select class="calc-input" id="calcTerm">
+                                    <option value="36">36 months</option>
+                                    <option value="48">48 months</option>
+                                    <option value="60" selected>60 months</option>
+                                    <option value="72">72 months</option>
+                                    <option value="84">84 months</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="monthly">
+                            <div>
+                                <span>Estimated monthly payment</span>
+                                <strong id="monthlyAmount">$871</strong>
+                            </div>
+                            <small>CAD / month<br>before taxes & fees</small>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Fake Reviews -->
+        <section class="section" id="reviews">
+            <div class="wrap">
+
+                <div class="section-head">
+                    <div>
+                        <div class="eyebrow">Good drives. Great stories.</div>
+                        <h2>Made for the way you move.</h2>
+                        <p>Buying an EV should feel exciting, not overwhelming.</p>
+                    </div>
+                    <span class="text-link">Find your match <span>→</span></span>
+                </div>
+
+                <div class="review-grid">
+
+                    <div class="testimonial">
+                        <div class="stars">★★★★★</div>
+                        <blockquote>“The team actually explained range and charging in a way that made sense for my commute. I felt confident, not pressured.”</blockquote>
+                        <div class="person">
+                            <div class="person-avatar">JM</div>
+                            <div>
+                                <strong>Jordan M.</strong>
+                                <small>Hyundai IONIQ 5 owner</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="testimonial">
+                        <div class="stars">★★★★★</div>
+                        <blockquote>“I could compare a few options side by side and understand what I was paying for. The whole process felt refreshingly simple.”</blockquote>
+                        <div class="person">
+                            <div class="person-avatar">SK</div>
+                            <div>
+                                <strong>Sarah K.</strong>
+                                <small>Tesla Model 3 owner</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="testimonial">
+                        <div class="stars">★★★★★</div>
+                        <blockquote>“I was shopping for my first EV and had a lot of questions. I got straightforward answers and found a car that fits my family.”</blockquote>
+                        <div class="person">
+                            <div class="person-avatar">AL</div>
+                            <div>
+                                <strong>Alex L.</strong>
+                                <small>Kia EV6 owner</small>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+    
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="wrap">
+
+            <div class="footer-grid">
+
+                <div>
+                    <div class="brand">
+                        <span>GreenDrive<em>EV</em></span>
+                    </div>
+                    <p>A more thoughtful way to shop electric. Discover your next vehicle with clear information, helpful tools, and a team that puts you first.</p>
+                </div>
+
+                <div>
+                    <h4>Explore</h4>
+                    <span>Shop all EVs</span>
+                    <span>Financing calculator</span>
+                    <span>Why GreenDrive</span>
+                </div>
+
+                <div>
+                    <h4>Helpful links</h4>
+                    <span>Compare vehicles</span>
+                    <span>Payment estimates</span>
+                    <span>Customer stories</span>
+                </div>
+
+                <div>
+                    <h4>Get in touch</h4>
+                    <span>hello@greendriveev.ca</span>
+                    <span>Toronto, Ontario</span>
+                    <span>Mon–Sat, 9am–6pm</span>
+                </div>
+
+            </div>
+
+            <div class="copyright">
+                <span>© 2026 GreenDriveEV. EECS4413-GroupC</span>
+                <span>Drive thoughtfully. Live electrically.</span>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <div class="overlay" id="vehicleModal">
+        <div class="modal">
+            <div class="modal-head">
+                <h3 id="modalTitle">Vehicle details</h3>
+                <button class="close" aria-label="Close">×</button>
+            </div>
+            <div id="
