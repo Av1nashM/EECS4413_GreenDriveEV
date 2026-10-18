@@ -28,5 +28,4 @@ spring.jpa.show-sql=true
 ```
 
 ### Run
-cd backend
-.\mvnw.cmd spring-boot:run
+Run the GreendriveevApplication.java file
