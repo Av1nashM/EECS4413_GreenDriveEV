@@ -1,5 +1,7 @@
 
 import { useState, useEffect } from 'react'
+import LoginPage from './LoginPage.jsx';
+import CartPage from './CartPage.jsx';
 function App() {
   const [searchText, setSearchText] = useState('')
   const [make, setMake] = useState('')
@@ -9,6 +11,7 @@ function App() {
   const [downPayment, setDownPayment] = useState(5000)
   const [rate, setRate] = useState(6.99)
   const [term, setTerm] = useState(60)
+  const [currentPage, setCurrentPage] = useState('home');
 
     const [vehicles, setVehicles] = useState([])
   const [loadingVehicles, setLoadingVehicles] = useState(true)
@@ -56,6 +59,14 @@ function App() {
       maximumFractionDigits: 0,
     })
 
+  if (currentPage === 'login') {
+    return <LoginPage onBack={() => setCurrentPage('home')} />;
+  }
+
+  if (currentPage === 'cart') {
+    return <CartPage onBack={() => setCurrentPage('home')} />;
+  }
+
   return (
     <>
       <header className="navbar">
@@ -72,7 +83,7 @@ function App() {
           </nav>
 
           <div className="navactions">
-            <button className="iconbtn" aria-label="Shopping cart">
+            <button onClick={() => setCurrentPage('cart')} className="iconbtn" aria-label="Shopping cart">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -90,7 +101,7 @@ function App() {
               Explore inventory
             </button>
 
-            <button className="signin-btn">
+            <button onClick={() => setCurrentPage('login')} className="signin-btn">
               Sign in
             </button>
           </div>
