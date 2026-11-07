@@ -2,6 +2,19 @@
 import { useState, useEffect } from 'react'
 import LoginPage from './LoginPage.jsx';
 import CartPage from './CartPage.jsx';
+import { addToCart, getCart } from './cartApi.js';
+
+// localStorage key where the logged-in user is remembered between page reloads.
+const USER_KEY = 'greendrive.user'
+
+// Reads the saved user; returns null if nothing is saved or storage is unavailable.
+function loadStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_KEY))
+  } catch {
+    return null
+  }
+}
 function App() {
   const [searchText, setSearchText] = useState('')
   const [make, setMake] = useState('')
@@ -12,6 +25,15 @@ function App() {
   const [rate, setRate] = useState(6.99)
   const [term, setTerm] = useState(60)
   const [currentPage, setCurrentPage] = useState('home');
+
+  // --- Cart / session state ---
+  const [user, setUser] = useState(loadStoredUser)
+  // Number shown on the navbar cart icon.
+  const [cartCount, setCartCount] = useState(0)
+  // Message shown under the vehicle card that was just added (or failed to add).
+  const [cartNotice, setCartNotice] = useState(null) // { vehicleId, text, isError }
+  // Vehicle whose "Add to cart" request is in flight (disables its button).
+  const [addingVehicleId, setAddingVehicleId] = useState(null)
 
     const [vehicles, setVehicles] = useState([])
   const [loadingVehicles, setLoadingVehicles] = useState(true)
@@ -41,6 +63,48 @@ function App() {
     fetchVehicles()
   }, [])
 
+  const userId = user?.userId
+
+  // Keep the navbar badge in sync with the saved cart.
+  useEffect(() => {
+    if (!userId) return
+    getCart(userId)
+      .then((cart) => setCartCount(cart.itemCount))
+      .catch(() => setCartCount(0))
+  }, [userId])
+
+  // Called by the login page: remember the user and return home.
+  const handleLoggedIn = (loggedInUser) => {
+    try {
+      localStorage.setItem(USER_KEY, JSON.stringify(loggedInUser))
+    } catch {
+      // storage unavailable; session just won't persist across reloads
+    }
+    setUser(loggedInUser)
+    setCurrentPage('home')
+  }
+
+  // PB-15: add one of this vehicle; signed-out visitors are sent to the login page first.
+  const handleAddToCart = async (vehicle) => {
+    if (!userId) {
+      setCurrentPage('login')
+      return
+    }
+    setAddingVehicleId(vehicle.id)
+    setCartNotice(null)
+    try {
+      await addToCart(userId, vehicle.id, 1)
+      // Re-read the cart so the badge reflects the server's count.
+      const cart = await getCart(userId)
+      setCartCount(cart.itemCount)
+      setCartNotice({ vehicleId: vehicle.id, text: 'Added to cart ✓' })
+    } catch (error) {
+      setCartNotice({ vehicleId: vehicle.id, text: error.message, isError: true })
+    } finally {
+      setAddingVehicleId(null)
+    }
+  }
+
   const principal = Math.max(0, Number(price) - Number(downPayment))
   const monthlyRate = Number(rate) / 100 / 12
 
@@ -60,11 +124,23 @@ function App() {
     })
 
   if (currentPage === 'login') {
-    return <LoginPage onBack={() => setCurrentPage('home')} />;
+    return (
+      <LoginPage
+        onBack={() => setCurrentPage('home')}
+        onLoggedIn={handleLoggedIn}
+      />
+    );
   }
 
   if (currentPage === 'cart') {
-    return <CartPage onBack={() => setCurrentPage('home')} />;
+    return (
+      <CartPage
+        user={user}
+        onBack={() => setCurrentPage('home')}
+        onSignIn={() => setCurrentPage('login')}
+        onCartChange={setCartCount}
+      />
+    );
   }
 
   return (
@@ -94,7 +170,7 @@ function App() {
                 <circle cx="10" cy="20" r="1" />
                 <circle cx="18" cy="20" r="1" />
               </svg>
-              <span className="count">0</span>
+              <span className="count">{userId ? cartCount : 0}</span>
             </button>
 
             <button className="btn btn-primary">
@@ -284,6 +360,25 @@ function App() {
                       </p>
 
                       {vehicle.history && <p>{vehicle.history}</p>}
+
+                      {/* PB-15: add this vehicle to the cart */}
+                      <button
+                        type="button"
+                        className="btn btn-primary add-to-cart"
+                        disabled={addingVehicleId === vehicle.id}
+                        onClick={() => handleAddToCart(vehicle)}
+                      >
+                        {addingVehicleId === vehicle.id ? 'Adding…' : 'Add to cart'}
+                      </button>
+
+                      {cartNotice?.vehicleId === vehicle.id && (
+                        <p
+                          className={cartNotice.isError ? 'cart-notice error' : 'cart-notice'}
+                          role={cartNotice.isError ? 'alert' : 'status'}
+                        >
+                          {cartNotice.text}
+                        </p>
+                      )}
                     </div>
                   </article>
                 ))
