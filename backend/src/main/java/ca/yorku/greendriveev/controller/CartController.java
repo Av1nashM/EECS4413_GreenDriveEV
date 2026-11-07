@@ -1,4 +1,3 @@
-
 package ca.yorku.greendriveev.controller;
 
 import ca.yorku.greendriveev.model.Cart;
@@ -17,6 +16,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * REST API for the shopping cart.
+ *
+ * Every endpoint takes the owning user's id as the ?userId= query parameter
+ * (there are no tokens yet), and only touches that user's cart.
+ *
+ *   GET    /api/cart?userId=1              view the cart with totals
+ *   POST   /api/cart/items?userId=1        PB-15 add a vehicle
+ *   PUT    /api/cart/items/{id}?userId=1   PB-16 change a line's quantity
+ *   DELETE /api/cart/items/{id}?userId=1   PB-17 remove a line
+ */
 @RestController
 @RequestMapping("/api/cart")
 @CrossOrigin(origins = "*")
@@ -38,6 +48,7 @@ public class CartController {
         this.vehicleRepository = vehicleRepository;
     }
 
+    /** Loads the user's cart, or responds 404 if the user or cart does not exist. */
     private Cart findCart(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new org.springframework.web.server.ResponseStatusException(
@@ -50,13 +61,60 @@ public class CartController {
                     HttpStatus.NOT_FOUND, "Cart not found"));
     }
 
-    @GetMapping
-    @Transactional(readOnly = true)
-    public List<CartItem> getCart(@RequestParam Long userId) {
-        Cart cart = findCart(userId);
-        return cartItemRepository.findByCartId(cart.getId());
+    /** Flat view of a cart line; avoids serializing lazy JPA entities (and the user's password hash). */
+    // One line of the cart as sent to the frontend (vehicle details + quantity + line total).
+    public record CartItemResponse(
+            Long itemId,
+            Long vehicleId,
+            String make,
+            String model,
+            int year,
+            String bodyStyle,
+            String imageUrl,
+            double price,
+            int quantity,
+            double lineTotal) {}
+
+    // Whole cart: its lines, total number of vehicles (sum of quantities), and the price subtotal.
+    public record CartResponse(
+            List<CartItemResponse> items,
+            int itemCount,
+            double subtotal) {}
+
+    /** Converts a CartItem entity into the flat response record. */
+    private CartItemResponse toResponse(CartItem item) {
+        Vehicle v = item.getVehicle();
+        return new CartItemResponse(
+            item.getId(), v.getId(), v.getMake(), v.getModel(), v.getYear(),
+            v.getBodyStyle(), v.getImageUrl(), v.getPrice(),
+            item.getQuantity(), v.getPrice() * item.getQuantity());
     }
 
+    /** Returns the user's cart. Runs in a transaction so the lazy vehicle relation can be read. */
+    @GetMapping
+    @Transactional(readOnly = true)
+    public CartResponse getCart(@RequestParam Long userId) {
+        Cart cart = findCart(userId);
+        List<CartItemResponse> items = cartItemRepository
+            .findByCartId(cart.getId()).stream()
+            .map(this::toResponse)
+            // Stable order so lines don't jump around after an edit.
+            .sorted(java.util.Comparator.comparing(CartItemResponse::itemId))
+            .toList();
+
+        int itemCount = items.stream().mapToInt(CartItemResponse::quantity).sum();
+        double subtotal = items.stream().mapToDouble(CartItemResponse::lineTotal).sum();
+        return new CartResponse(items, itemCount, subtotal);
+    }
+
+    // Upper limit for one vehicle's quantity in a cart.
+    private static final int MAX_QUANTITY = 99;
+
+    /**
+     * PB-15: add a vehicle to the cart. If the vehicle is already in the cart,
+     * the requested quantity is added to the existing line instead of creating a duplicate
+     * (the cart_items table has a unique (cart, vehicle) constraint).
+     */
     @PostMapping("/items")
     @Transactional
     public ResponseEntity<?> addItem(
@@ -66,9 +124,12 @@ public class CartController {
         Integer vehicleId = body.get("vehicleId");
         Integer quantity = body.get("quantity");
 
-        if (vehicleId == null || quantity == null || quantity < 1) {
+        // Reject missing or out-of-range input before touching the database.
+        if (vehicleId == null || quantity == null
+                || quantity < 1 || quantity > MAX_QUANTITY) {
             return ResponseEntity.badRequest().body(
-                Map.of("error", "vehicleId and a positive quantity are required."));
+                Map.of("error", "vehicleId and a quantity between 1 and "
+                    + MAX_QUANTITY + " are required."));
         }
 
         Cart cart = findCart(userId);
@@ -78,6 +139,7 @@ public class CartController {
                 new org.springframework.web.server.ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Vehicle not found"));
 
+        // Reuse the existing line for this vehicle, or start a new one at quantity 0.
         CartItem item = cartItemRepository
             .findByCartIdAndVehicleId(cart.getId(), vehicle.getId())
             .orElseGet(() -> {
@@ -88,7 +150,14 @@ public class CartController {
                 return newItem;
             });
 
-        item.setQuantity(item.getQuantity() + quantity);
+        int newQuantity = item.getQuantity() + quantity;
+        if (newQuantity > MAX_QUANTITY) {
+            return ResponseEntity.badRequest().body(
+                Map.of("error", "A cart can hold at most " + MAX_QUANTITY
+                    + " of the same vehicle."));
+        }
+
+        item.setQuantity(newQuantity);
         CartItem savedItem = cartItemRepository.save(item);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -101,6 +170,7 @@ public class CartController {
         );
     }
 
+    /** PB-16: set a cart line to an exact quantity (not a delta). */
     @PutMapping("/items/{itemId}")
     @Transactional
     public ResponseEntity<?> updateItem(
@@ -110,9 +180,9 @@ public class CartController {
 
         Integer quantity = body.get("quantity");
 
-        if (quantity == null || quantity < 1) {
+        if (quantity == null || quantity < 1 || quantity > MAX_QUANTITY) {
             return ResponseEntity.badRequest().body(
-                Map.of("error", "Quantity must be at least 1."));
+                Map.of("error", "Quantity must be between 1 and " + MAX_QUANTITY + "."));
         }
 
         Cart cart = findCart(userId);
@@ -122,6 +192,8 @@ public class CartController {
                 new org.springframework.web.server.ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Cart item not found"));
 
+        // The item must belong to this user's cart. Answer 404 (not 403) so we
+        // don't reveal that the id exists in someone else's cart.
         if (!item.getCart().getId().equals(cart.getId())) {
             throw new org.springframework.web.server.ResponseStatusException(
                 HttpStatus.NOT_FOUND, "Cart item not found");
@@ -137,6 +209,7 @@ public class CartController {
         ));
     }
 
+    /** PB-17: remove a line from the cart entirely. */
     @DeleteMapping("/items/{itemId}")
     @Transactional
     public ResponseEntity<?> removeItem(
@@ -150,6 +223,7 @@ public class CartController {
                 new org.springframework.web.server.ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Cart item not found"));
 
+        // Same ownership check as updateItem.
         if (!item.getCart().getId().equals(cart.getId())) {
             throw new org.springframework.web.server.ResponseStatusException(
                 HttpStatus.NOT_FOUND, "Cart item not found");
