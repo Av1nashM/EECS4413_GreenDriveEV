@@ -27,15 +27,18 @@ Create a PostgreSQL database named `GreenDriveEV`.
 Open `backend/src/main/resources/application.properties` and configure the database connection:
 
 \`\`\`properties
-spring.application.name=greendriveev
-spring.datasource.url=jdbc:postgresql://localhost:5432/GreenDriveEV
-spring.datasource.username=postgres
-spring.datasource.password=YOUR_POSTGRES_PASSWORD
+spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/GreenDriveEV}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+
+server.port=${PORT:8080}
+
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 \`\`\`
 
-Replace `YOUR_POSTGRES_PASSWORD` with your PostgreSQL password.
+Have the environment variables set up on your device
 
 ### 3. Install Frontend Dependencies
 
@@ -57,9 +60,6 @@ From the project root, run:
 \`\`\`powershell
 cd backend
 .\mvnw.cmd spring-boot:run
-\`\`\`
-or
-\`\`\`Run Java file "GreendriveevApplication.java
 \`\`\`
 
 The backend runs at `http://localhost:8080` by default.
