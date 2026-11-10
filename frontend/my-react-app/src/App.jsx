@@ -42,7 +42,7 @@ function App() {
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/vehicles')
+        const response = await fetch('https://eecs4413-greendriveev.onrender.com/api/vehicles')
 
         if (!response.ok) {
           throw new Error(`Server returned ${response.status}`)
