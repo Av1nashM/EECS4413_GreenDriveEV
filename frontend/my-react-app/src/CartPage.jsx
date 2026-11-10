@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import './pages.css'
-import { getCart, updateCartItem, removeCartItem } from './cartApi.js'
+import { getCart, updateCartItem, removeCartItem } from './cartAPI.js'
 
 // Formats a number as Canadian dollars with cents, e.g. $48,990.00.
 const money = (amount) =>
