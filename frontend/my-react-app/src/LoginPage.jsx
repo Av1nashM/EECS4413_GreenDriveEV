@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './pages.css'
-import { login } from './cartApi.js'
+import { login } from './cartAPI.js'
 
 /**
  * Sign-in page. On success it calls onLoggedIn(user) with { userId, name, email }
