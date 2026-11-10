@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Register</title></head>
+<body>
+<h1>Register</h1>
+<form id="f">
+  <p>Name: <input id="name" required maxlength="100"></p>
+  <p>Email: <input id="email" type="email" required></p>
+  <p>Password (min 8): <input id="password" type="password" required minlength="8"></p>
+  <p><button type="submit">Register</button></p>
+</form>
+<p id="msg"></p>
+<p><a href="login.html">Already have an account? Login</a></p>
+<script>
+document.getElementById('f').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  var msg = document.getElementById('msg');
+  try {
+    var r = await fetch('/api/v1/auth/register', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      })
+    });
+    var data = await r.json().catch(function () { return null; });
+    msg.textContent = r.ok
+      ? 'Registered as ' + data.email + '. You can now log in.'
+      : 'Error ' + r.status + ': ' + (data && data.message ? data.message : 'request failed');
+  } catch (err) {
+    msg.textContent = 'Could not reach the server.';
+  }
+});
+</script>
+</body>
+</html>
