@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import LoginPage from './LoginPage.jsx';
 import CartPage from './CartPage.jsx';
-import { addToCart, getCart } from './cartApi.js';
+import { addToCart, getCart } from './cartAPI.js';
 
 // localStorage key where the logged-in user is remembered between page reloads.
 const USER_KEY = 'greendrive.user'
