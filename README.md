@@ -12,6 +12,14 @@ GreenDriveEV is a full-stack electric vehicle marketplace web application develo
 - **Build Tool:** Maven
 - **Data Persistence:** Spring Data JPA / Hibernate
 
+## Running the Application
+
+The backend and frontend are running on the cloud via Render, it is hosted here: https://eecs4413-greendriveev-react.onrender.com
+
+## Running Locally
+
+If you want to run the project locally, you must follow these instructions
+
 ## Setup Instructions
 
 ### 1. Install Requirements
@@ -49,6 +57,10 @@ cd frontend/my-react-app
 npm install
 \`\`\`
 
+## 4. Change backend location
+
+Find any instance of the backend at https://eecs4413-greendriveev.onrender.com and change it to localhost
+
 ## Running the Application
 
 The backend and frontend must run in separate terminals.
@@ -74,3 +86,5 @@ npm run dev
 \`\`\`
 
 Open the local URL displayed by Vite, usually `http://localhost:5173`, in your browser.
+
+
