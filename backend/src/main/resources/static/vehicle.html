@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Vehicle details</title></head>
+<body>
+<h1>Vehicle details</h1>
+<p id="msg">Loading...</p>
+<table id="details" border="1" hidden></table>
+<h2>Vehicle history report</h2>
+<p id="history"></p>
+<p><button id="logout" type="button">Logout</button> <a href="login.html">Login</a></p>
+<script>
+var id = new URLSearchParams(location.search).get('id');
+var msg = document.getElementById('msg');
+
+(async function () {
+  if (!id) { msg.textContent = 'Add ?id=<vehicle id> to the URL.'; return; }
+  try {
+    var r = await fetch('/api/v1/vehicles/' + encodeURIComponent(id));
+    var v = await r.json().catch(function () { return null; });
+    if (!r.ok) {
+      msg.textContent = r.status === 404 ? 'Vehicle not found.' : 'Error ' + r.status + ': ' + (v && v.message ? v.message : '');
+      return;
+    }
+    msg.textContent = '';
+    var t = document.getElementById('details');
+    ['make', 'model', 'year', 'price', 'mileage', 'bodyStyle'].forEach(function (k) {
+      var row = t.insertRow();
+      row.insertCell().textContent = k;
+      row.insertCell().textContent = v[k];
+    });
+    t.hidden = false;
+    document.getElementById('history').textContent = v.historyReport || 'No history report on file.';
+  } catch (err) {
+    msg.textContent = 'Could not reach the server.';
+  }
+})();
+
+document.getElementById('logout').addEventListener('click', async function () {
+  var token = localStorage.getItem('token');
+  if (!token) { alert('Not logged in.'); return; }
+  try {
+    await fetch('/api/v1/auth/logout', {method: 'POST', headers: {'Authorization': 'Bearer ' + token}});
+  } catch (err) { /* ignore network errors, still forget the token locally */ }
+  localStorage.removeItem('token');
+  alert('Logged out.');
+});
+</script>
+</body>
+</html>

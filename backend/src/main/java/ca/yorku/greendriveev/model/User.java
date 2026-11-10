@@ -23,6 +23,11 @@ public class User {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    // DB-level default so rows that already exist become CUSTOMER when ddl-auto=update adds the column.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", columnDefinition = "varchar(20) default 'CUSTOMER'")
+    private Role role = Role.CUSTOMER;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -63,6 +68,14 @@ public class User {
     
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public LocalDateTime getCreatedAt() { 

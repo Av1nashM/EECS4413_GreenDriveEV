@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Login</title></head>
+<body>
+<h1>Login</h1>
+<form id="f">
+  <p>Email: <input id="email" type="email" required></p>
+  <p>Password: <input id="password" type="password" required></p>
+  <p><button type="submit">Login</button></p>
+</form>
+<p id="msg"></p>
+<p><button id="logout" type="button">Logout</button></p>
+<p><a href="register.html">Create an account</a></p>
+<script>
+var msg = document.getElementById('msg');
+
+document.getElementById('f').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  try {
+    var r = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+      })
+    });
+    var data = await r.json().catch(function () { return null; });
+    if (r.ok) {
+      localStorage.setItem('token', data.token);
+      msg.textContent = 'Logged in as ' + data.user.email + ' (' + data.user.role + ').';
+    } else {
+      msg.textContent = 'Error ' + r.status + ': ' + (data && data.message ? data.message : 'login failed');
+    }
+  } catch (err) {
+    msg.textContent = 'Could not reach the server.';
+  }
+});
+
+document.getElementById('logout').addEventListener('click', async function () {
+  var token = localStorage.getItem('token');
+  if (!token) { msg.textContent = 'Not logged in.'; return; }
+  try {
+    var r = await fetch('/api/v1/auth/logout', {
+      method: 'POST',
+      headers: {'Authorization': 'Bearer ' + token}
+    });
+    // 204 = logged out; 401 = token was already invalid. Either way, forget it.
+    localStorage.removeItem('token');
+    msg.textContent = (r.status === 204 || r.status === 401) ? 'Logged out.' : 'Logout failed: ' + r.status;
+  } catch (err) {
+    msg.textContent = 'Could not reach the server.';
+  }
+});
+</script>
+</body>
+</html>
