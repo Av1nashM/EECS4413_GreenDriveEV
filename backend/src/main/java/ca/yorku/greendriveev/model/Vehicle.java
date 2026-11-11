@@ -1,5 +1,6 @@
 package ca.yorku.greendriveev.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -20,6 +21,10 @@ public class Vehicle {
     private String bodyStyle;
     private String history;
     private String imageUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "accident_status")
+    private AccidentStatus accidentStatus = AccidentStatus.UNKNOWN;
 
     public Vehicle() {}
 
@@ -62,5 +67,18 @@ public class Vehicle {
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    @JsonIgnore
+    public AccidentStatus getAccidentStatus() {
+        return accidentStatus == null
+                ? AccidentStatus.UNKNOWN
+                : accidentStatus;
+    }
+
+    public void setAccidentStatus(AccidentStatus accidentStatus) {
+        this.accidentStatus = accidentStatus == null
+                ? AccidentStatus.UNKNOWN
+                : accidentStatus;
+    }
 }
 
