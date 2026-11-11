@@ -1,5 +1,6 @@
 package ca.yorku.greendriveev.common;
 
+import ca.yorku.greendriveev.catalog.exception.InvalidCatalogQueryException;
 import ca.yorku.greendriveev.catalog.exception.VehicleNotFoundException;
 import ca.yorku.greendriveev.identity.exception.EmailAlreadyExistsException;
 import ca.yorku.greendriveev.identity.exception.InvalidCredentialsException;
@@ -57,6 +58,14 @@ public class ApiExceptionHandler {
     public ResponseEntity<Map<String, Object>> notFound(
             VehicleNotFoundException ex, HttpServletRequest req) {
         return body(HttpStatus.NOT_FOUND, ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(InvalidCatalogQueryException.class)
+    public ResponseEntity<Map<String, Object>> invalidCatalogQuery(
+            InvalidCatalogQueryException ex,
+            HttpServletRequest req) {
+
+        return body(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
     }
 
     private ResponseEntity<Map<String, Object>> body(

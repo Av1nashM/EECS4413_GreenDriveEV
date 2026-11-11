@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GreenDriveEV Catalogue</title>
+</head>
+<body>
+    <h1>GreenDriveEV Catalogue</h1>
+
+    <p>Browse electric vehicles. Leave filters blank to include all values.</p>
+
+    <form id="catalogue-form">
+        <fieldset id="catalogue-controls">
+            <legend>Filter and sort vehicles</legend>
+
+            <p>
+                <label for="make">Brand</label>
+                <input id="make" name="make" type="text"
+                       placeholder="Example: Tesla">
+            </p>
+
+            <p>
+                <label for="bodyStyle">Body style</label>
+                <input id="bodyStyle" name="bodyStyle" type="text"
+                       placeholder="Example: SUV">
+            </p>
+
+            <p>
+                <label for="year">Model year</label>
+                <input id="year" name="year" type="number"
+                       min="1" max="9999" step="1">
+            </p>
+
+            <p>
+                <label for="accidentStatus">Accident history</label>
+                <select id="accidentStatus" name="accidentStatus">
+                    <option value="">All histories</option>
+                    <option value="NO_REPORTED_ACCIDENTS">
+                        No reported accidents
+                    </option>
+                    <option value="ACCIDENT_REPORTED">
+                        Accident reported
+                    </option>
+                    <option value="UNKNOWN">Unknown</option>
+                </select>
+            </p>
+
+            <p>
+                <label for="sortBy">Sort by</label>
+                <select id="sortBy" name="sortBy">
+                    <option value="price">Price</option>
+                    <option value="mileage">Mileage</option>
+                </select>
+
+                <label for="order">Order</label>
+                <select id="order" name="order">
+                    <option value="asc">Lowest first</option>
+                    <option value="desc">Highest first</option>
+                </select>
+            </p>
+
+            <button type="submit">Apply filters</button>
+            <button id="reset-button" type="button">Reset</button>
+        </fieldset>
+    </form>
+
+    <p id="status-message" role="status"></p>
+    <p id="error-message" role="alert" hidden></p>
+
+    <table id="vehicle-table" border="1" hidden>
+        <caption>Catalogue results</caption>
+        <thead>
+            <tr>
+                <th scope="col">Brand</th>
+                <th scope="col">Model</th>
+                <th scope="col">Year</th>
+                <th scope="col">Body style</th>
+                <th scope="col">Price (CAD)</th>
+                <th scope="col">Mileage (km)</th>
+                <th scope="col">Accident history</th>
+                <th scope="col">Details</th>
+            </tr>
+        </thead>
+        <tbody id="vehicle-rows"></tbody>
+    </table>
+
+    <script>
+        const form = document.getElementById('catalogue-form');
+        const controls = document.getElementById('catalogue-controls');
+        const statusMessage = document.getElementById('status-message');
+        const errorMessage = document.getElementById('error-message');
+        const table = document.getElementById('vehicle-table');
+        const rows = document.getElementById('vehicle-rows');
+
+        const currencyFormatter = new Intl.NumberFormat('en-CA', {
+            style: 'currency',
+            currency: 'CAD'
+        });
+
+        const numberFormatter = new Intl.NumberFormat('en-CA');
+
+        const accidentLabels = {
+            NO_REPORTED_ACCIDENTS: 'No reported accidents',
+            ACCIDENT_REPORTED: 'Accident reported',
+            UNKNOWN: 'Unknown'
+        };
+
+        function buildQueryParameters() {
+            const parameters = new URLSearchParams();
+
+            for (const [name, value] of new FormData(form)) {
+                const trimmedValue = value.trim();
+
+                if (trimmedValue !== '') {
+                    parameters.set(name, trimmedValue);
+                }
+            }
+
+            return parameters;
+        }
+
+        function addCell(row, value) {
+            const cell = row.insertCell();
+            cell.textContent = value == null ? 'Not available' : String(value);
+        }
+
+        function displayVehicles(vehicles) {
+            const fragment = document.createDocumentFragment();
+
+            for (const vehicle of vehicles) {
+                const row = document.createElement('tr');
+
+                addCell(row, vehicle.make);
+                addCell(row, vehicle.model);
+                addCell(row, vehicle.year);
+                addCell(row, vehicle.bodyStyle);
+                addCell(row, currencyFormatter.format(vehicle.price));
+                addCell(row, numberFormatter.format(vehicle.mileage));
+                addCell(
+                    row,
+                    accidentLabels[vehicle.accidentStatus] || 'Unknown'
+                );
+
+                const link = document.createElement('a');
+                link.href =
+                    'vehicle.html?id=' + encodeURIComponent(vehicle.id);
+                link.textContent = 'View details';
+                link.setAttribute(
+                    'aria-label',
+                    'View details for ' +
+                    vehicle.year + ' ' + vehicle.make + ' ' + vehicle.model
+                );
+
+                row.insertCell().appendChild(link);
+                fragment.appendChild(row);
+            }
+
+            rows.appendChild(fragment);
+        }
+
+        async function loadVehicles() {
+            const parameters = buildQueryParameters();
+
+            controls.disabled = true;
+            form.setAttribute('aria-busy', 'true');
+
+            table.hidden = true;
+            rows.replaceChildren();
+
+            errorMessage.hidden = true;
+            errorMessage.textContent = '';
+            statusMessage.textContent = 'Loading vehicles...';
+
+            try {
+                const response = await fetch(
+                    '/api/v1/vehicles?' + parameters.toString(),
+                    { headers: { Accept: 'application/json' } }
+                );
+
+                const data = await response.json().catch(() => null);
+
+                if (!response.ok) {
+                    throw new Error(
+                        data?.message ||
+                        'Could not load vehicles (HTTP ' + response.status + ').'
+                    );
+                }
+
+                if (!Array.isArray(data)) {
+                    throw new Error('The server returned an unexpected response.');
+                }
+
+                if (data.length === 0) {
+                    const hasFilters = [
+                        'make', 'bodyStyle', 'year', 'accidentStatus'
+                    ].some(name => parameters.has(name));
+
+                    statusMessage.textContent = hasFilters
+                        ? 'No vehicles match your filters.'
+                        : 'No vehicles are currently available.';
+
+                    return;
+                }
+
+                displayVehicles(data);
+                table.hidden = false;
+
+                statusMessage.textContent =
+                    data.length + (data.length === 1
+                        ? ' vehicle found.'
+                        : ' vehicles found.');
+            } catch (error) {
+                statusMessage.textContent = '';
+                errorMessage.textContent = error instanceof TypeError
+                    ? 'Could not reach the server. Please try again.'
+                    : error.message;
+                errorMessage.hidden = false;
+            } finally {
+                controls.disabled = false;
+                form.setAttribute('aria-busy', 'false');
+            }
+        }
+
+        form.addEventListener('submit', event => {
+            event.preventDefault();
+            loadVehicles();
+        });
+
+        document.getElementById('reset-button').addEventListener('click', () => {
+            form.reset();
+            loadVehicles();
+        });
+
+        loadVehicles();
+    </script>
+</body>
+</html>
