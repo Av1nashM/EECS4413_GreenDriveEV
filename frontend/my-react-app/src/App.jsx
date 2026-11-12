@@ -5,6 +5,8 @@ import CartPage from './CartPage.jsx';
 import { addToCart, getCart } from './cartAPI.js';
 import CatalogPage from './CatalogPage.jsx'
 import { API_BASE } from './apiConfig.js'
+import VehicleDetailsPage from './VehicleDetailsPage.jsx';
+import RegisterPage from './RegisterPage.jsx';
 
 // localStorage key where the logged-in user is remembered between page reloads.
 const USER_KEY = 'greendrive.user'
@@ -27,6 +29,7 @@ function App() {
   const [rate, setRate] = useState(6.99)
   const [term, setTerm] = useState(60)
   const [currentPage, setCurrentPage] = useState('home');
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null); 
 
   // --- Cart / session state ---
   const [user, setUser] = useState(loadStoredUser)
@@ -130,6 +133,16 @@ function App() {
       <LoginPage
         onBack={() => setCurrentPage('home')}
         onLoggedIn={handleLoggedIn}
+        onGoToRegister={() => setCurrentPage('register')}
+      />
+    );
+  }
+
+  if (currentPage === 'register') {
+    return (
+      <RegisterPage
+        onBack={() => setCurrentPage('home')}
+        onGoToLogin={() => setCurrentPage('login')}
       />
     );
   }
@@ -155,6 +168,16 @@ function App() {
         cartNotice={cartNotice}
       />
     )
+  }
+
+    if (currentPage === 'vehicleDetails') {
+    return (
+      <VehicleDetailsPage
+        vehicleId={selectedVehicleId}
+        onBack={() => setCurrentPage('home')}
+        onLogin={() => setCurrentPage('login')}
+      />
+    );
   }
 
   return (
@@ -375,6 +398,18 @@ function App() {
                       </p>
 
                       {vehicle.history && <p>{vehicle.history}</p>}
+
+                      <button 
+                        type="button" 
+                        className="text-link" 
+                        onClick={() => {
+                          setSelectedVehicleId(vehicle.id);
+                          setCurrentPage('vehicleDetails');
+                        }}
+                        style={{ display: 'block', marginBottom: '10px' }}
+                      >
+                        View details →
+                      </button>
 
                       {/* PB-15: add this vehicle to the cart */}
                       <button
