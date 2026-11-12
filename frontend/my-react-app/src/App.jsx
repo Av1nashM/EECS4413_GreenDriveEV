@@ -19,6 +19,13 @@ function loadStoredUser() {
     return null
   }
 }
+
+
+// Shuffles an array randomly for the home page
+const shuffleArray = (array) => {
+  return [...array].sort(() => Math.random() - 0.5);
+};
+
 function App() {
   const [searchText, setSearchText] = useState('')
   const [make, setMake] = useState('')
@@ -30,6 +37,7 @@ function App() {
   const [term, setTerm] = useState(60)
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedVehicleId, setSelectedVehicleId] = useState(null); 
+  const [homeCategory, setHomeCategory] = useState('All');
 
   // --- Cart / session state ---
   const [user, setUser] = useState(loadStoredUser)
@@ -283,67 +291,6 @@ function App() {
 
               <div className="hero-visual"></div>
             </div>
-
-            <div className="searchbar" aria-label="Find a vehicle">
-              <div className="search-field">
-                <label htmlFor="searchText">Find your EV</label>
-                <input
-                  id="searchText"
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  placeholder="Try Tesla Model Y, Hyundai..."
-                />
-              </div>
-
-              <div className="search-field">
-                <label htmlFor="makeFilter">Make</label>
-                <select
-                  id="makeFilter"
-                  value={make}
-                  onChange={(e) => setMake(e.target.value)}
-                >
-                  <option value="">All makes</option>
-                  <option>Tesla</option>
-                  <option>Hyundai</option>
-                  <option>Kia</option>
-                  <option>Polestar</option>
-                  <option>Ford</option>
-                </select>
-              </div>
-
-              <div className="search-field">
-                <label htmlFor="typeFilter">Body style</label>
-                <select
-                  id="typeFilter"
-                  value={bodyStyle}
-                  onChange={(e) => setBodyStyle(e.target.value)}
-                >
-                  <option value="">All styles</option>
-                  <option>SUV</option>
-                  <option>Sedan</option>
-                  <option>Hatchback</option>
-                </select>
-              </div>
-
-              <div className="search-field">
-                <label htmlFor="priceFilter">Max. budget</label>
-                <select
-                  id="priceFilter"
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
-                >
-                  <option value="">Any price</option>
-                  <option value="40000">$40,000</option>
-                  <option value="50000">$50,000</option>
-                  <option value="60000">$60,000</option>
-                  <option value="70000">$70,000</option>
-                </select>
-              </div>
-
-              <button className="btn btn-primary">
-                Find my EV <span>→</span>
-              </button>
-            </div>
           </div>
         </section>
 
@@ -360,27 +307,25 @@ function App() {
                 </p>
               </div>
 
-              <span className="text-link">
+              <button 
+                className="text-link" 
+                onClick={() => setCurrentPage('catalog')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              >
                 View all vehicles <span>→</span>
-              </span>
+              </button>
             </div>
 
             <div className="filterrow">
-              <button className="chip active" data-chip="">
-                All vehicles
-              </button>
-              <button className="chip" data-chip="SUV">
-                Electric SUVs
-              </button>
-              <button className="chip" data-chip="Sedan">
-                Sedans
-              </button>
-              <button className="chip" data-chip="Pre-owned">
-                Pre-owned
-              </button>
-              <button className="chip" data-chip="New arrival">
-                New arrivals
-              </button>
+              {['All', 'SUV', 'Sedan', 'Hatchback', 'Truck'].map((category) => (
+                <button 
+                  key={category}
+                  className={`chip ${homeCategory === category ? 'active' : ''}`}
+                  onClick={() => setHomeCategory(category)}
+                >
+                  {category === 'All' ? 'All vehicles' : `Electric ${category}s`}
+                </button>
+              ))}
             </div>
 
             <div className="vehicle-grid" id="vehicleGrid">
@@ -391,7 +336,10 @@ function App() {
               ) : vehicles.length === 0 ? (
                 <p>No vehicles found in the database.</p>
               ) : (
-                vehicles.map((vehicle) => (
+                // Shuffle the vehicles, filter by category, then take the first 3
+                shuffleArray(
+                  vehicles.filter(v => homeCategory === 'All' || v.bodyStyle === homeCategory)
+                ).slice(0, 3).map((vehicle) => (
                   <article className="vehicle-card" key={vehicle.id}>
                     {vehicle.imageUrl && (
                       <img
@@ -428,7 +376,6 @@ function App() {
                         View details →
                       </button>
 
-                      {/* PB-15: add this vehicle to the cart */}
                       <button
                         type="button"
                         className="btn btn-primary add-to-cart"
