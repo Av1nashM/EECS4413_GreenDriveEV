@@ -342,10 +342,17 @@ function App() {
                 ).slice(0, 3).map((vehicle) => (
                   <article className="vehicle-card" key={vehicle.id}>
                     {vehicle.imageUrl && (
-                      <img
+                      <<img
                         src={vehicle.imageUrl}
                         alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
                         className="vehicle-image"
+                        style={{ 
+                          width: '100%', 
+                          height: '200px', 
+                          objectFit: 'cover',
+                          borderTopLeftRadius: '8px',
+                          borderTopRightRadius: '8px'
+                        }}
                       />
                     )}
 
