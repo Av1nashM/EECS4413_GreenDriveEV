@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { API_BASE } from './apiConfig.js';
 
 // currency formatter from your CatalogPage
@@ -10,11 +9,8 @@ const money = new Intl.NumberFormat('en-CA', {
 
 const number = new Intl.NumberFormat('en-CA');
 
-export default function VehicleDetailsPage() {
-  // Gets the :id from the URL (e.g., /vehicle/123)
-  const { id } = useParams(); 
-  const navigate = useNavigate();
-
+export default function VehicleDetailsPage({ vehicleId, onBack, onLogin }) {
+  
   const [result, setResult] = useState({
     loading: true,
     vehicle: null,
@@ -25,14 +21,14 @@ export default function VehicleDetailsPage() {
     const controller = new AbortController();
     let active = true;
 
-    if (!id) {
+    if (!vehicleId) {
       setResult({ loading: false, vehicle: null, error: 'Add ?id=<vehicle id> to the URL.' });
       return;
     }
 
     setResult({ loading: true, vehicle: null, error: '' });
 
-    fetch(`${API_BASE}/vehicles/${encodeURIComponent(id)}`, { signal: controller.signal })
+    fetch(`${API_BASE}/vehicles/${encodeURIComponent(vehicleId)}`, { signal: controller.signal })
       .then(async (response) => {
         const data = await response.json().catch(() => null);
         
@@ -61,7 +57,7 @@ export default function VehicleDetailsPage() {
       active = false;
       controller.abort();
     };
-  }, [id]);
+  }, [vehicleId]);
 
   const handleLogout = async () => {
     const token = localStorage.getItem('token');
@@ -79,7 +75,7 @@ export default function VehicleDetailsPage() {
     }
     localStorage.removeItem('token');
     alert('Logged out.');
-    navigate('/login'); 
+    onBack();
   };
 
   const { loading, vehicle, error } = result;
@@ -125,10 +121,10 @@ export default function VehicleDetailsPage() {
         <button type="button" onClick={handleLogout} className="btn btn-light">
           Logout
         </button>
-        <button type="button" onClick={() => navigate('/login')} className="text-link">
+        <button type="button" onClick={onLogin} className="text-link">
           Login
         </button>
-        <button type="button" onClick={() => navigate(-1)} className="text-link">
+        <button type="button" onClick={onBack} className="text-link">
           Go Back
         </button>
       </div>
