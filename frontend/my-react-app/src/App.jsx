@@ -89,6 +89,17 @@ function App() {
     setCurrentPage('home')
   }
 
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem(USER_KEY);
+    } catch {
+      // ignore storage errors
+    }
+    setUser(null);
+    setCartCount(0);
+    setCurrentPage('home');
+  }
+
   // PB-15: add one of this vehicle; signed-out visitors are sent to the login page first.
   const handleAddToCart = async (vehicle) => {
     if (!userId) {
@@ -215,9 +226,15 @@ function App() {
               Explore inventory
             </button>
 
-            <button onClick={() => setCurrentPage('login')} className="signin-btn">
-              Sign in
-            </button>
+            {userId ? (
+              <button onClick={handleLogout} className="signin-btn">
+                Sign out
+              </button>
+            ) : (
+              <button onClick={() => setCurrentPage('login')} className="signin-btn">
+                Sign in
+              </button>
+            )}
           </div>
         </div>
       </header>
