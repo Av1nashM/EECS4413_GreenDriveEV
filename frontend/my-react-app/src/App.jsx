@@ -349,7 +349,7 @@ function App() {
                         style={{ 
                           width: '100%', 
                           height: '200px', 
-                          objectFit: 'cover',
+                          objectFit: 'fill',
                           borderTopLeftRadius: '8px',
                           borderTopRightRadius: '8px'
                         }}
