@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import LoginPage from './LoginPage.jsx';
 import CartPage from './CartPage.jsx';
 import { addToCart, getCart } from './cartAPI.js';
+import CatalogPage from './CatalogPage.jsx'
+import { API_BASE } from './apiConfig.js'
 
 // localStorage key where the logged-in user is remembered between page reloads.
 const USER_KEY = 'greendrive.user'
@@ -42,7 +44,7 @@ function App() {
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
-        const response = await fetch('https://eecs4413-greendriveev.onrender.com/api/vehicles')
+        const response = await fetch(`${API_BASE}/vehicles`)
 
         if (!response.ok) {
           throw new Error(`Server returned ${response.status}`)
@@ -143,6 +145,18 @@ function App() {
     );
   }
 
+  if (currentPage === 'catalog') {
+    return (
+      <CatalogPage
+        onBack={() => setCurrentPage('home')}
+        onViewCart={() => setCurrentPage('cart')}
+        onAddToCart={handleAddToCart}
+        addingVehicleId={addingVehicleId}
+        cartNotice={cartNotice}
+      />
+    )
+  }
+
   return (
     <>
       <header className="navbar">
@@ -152,7 +166,8 @@ function App() {
           </div>
 
           <nav className="navlinks">
-            <span className="navlink">Shop EVs</span>
+            <button type="button" className="navlink" 
+              onClick={() => setCurrentPage('catalog')} >Shop EVs </button>
             <span className="navlink">Why GreenDrive</span>
             <span className="navlink">Finance</span>
             <span className="navlink">Reviews</span>
@@ -173,7 +188,7 @@ function App() {
               <span className="count">{userId ? cartCount : 0}</span>
             </button>
 
-            <button className="btn btn-primary">
+            <button className="btn btn-primary" onClick={() => setCurrentPage('catalog')}>
               Explore inventory
             </button>
 
@@ -201,7 +216,7 @@ function App() {
                 </p>
 
                 <div className="hero-ctas">
-                  <button className="btn btn-primary">
+                  <button className="btn btn-primary" onClick={() => setCurrentPage('catalog')}>
                     Explore our EVs <span>↗</span>
                   </button>
 

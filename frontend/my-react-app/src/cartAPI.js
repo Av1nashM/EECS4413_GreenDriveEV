@@ -1,8 +1,9 @@
 // Thin wrapper around the cart REST endpoints (PB-15 add, PB-16 edit, PB-17 remove).
 // Every call is scoped to a user via the ?userId= query parameter, matching CartController.
 // Base URL of the Spring Boot backend.
-export const API_BASE = 'https://eecs4413-greendriveev.onrender.com/api'
+import { API_BASE } from './apiConfig.js'
 
+export { API_BASE }
 // Shared fetch helper: sends/receives JSON and turns any failure into an Error
 // whose message is safe to show to the user.
 async function request(path, options = {}) {
