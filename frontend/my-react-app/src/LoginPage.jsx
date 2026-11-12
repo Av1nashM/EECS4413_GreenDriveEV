@@ -6,7 +6,7 @@ import { login } from './cartAPI.js'
  * Sign-in page. On success it calls onLoggedIn(user) with { userId, name, email }
  * so the app can remember who is logged in (needed to load their cart).
  */
-export default function LoginPage({ onBack, onLoggedIn }) {
+export default function LoginPage({ onBack, onLoggedIn, onGoToRegister }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -82,8 +82,23 @@ export default function LoginPage({ onBack, onLoggedIn }) {
           </button>
         </form>
 
-        <p className="muted small-text">
-          Don't have an account? <span className="text-link">Create account</span>
+       <p className="muted small-text">
+          Don't have an account?{' '}
+          <button
+            type="button"
+            className="text-link"
+            onClick={onGoToRegister}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              font: 'inherit',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+            }}
+          >
+            Create account
+          </button>
         </p>
       </section>
     </main>
