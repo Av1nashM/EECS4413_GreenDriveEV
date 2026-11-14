@@ -14,7 +14,10 @@ GreenDriveEV is a full-stack electric vehicle marketplace web application develo
 
 ## Running the Application
 
-The backend and frontend are running on the cloud via Render, it is hosted here: https://eecs4413-greendriveev-react.onrender.com
+The backend and frontend are running on the cloud via Render.
+
+To ensure the applicaction is working correctly, first load https://eecs4413-greendriveev.onrender.com/ and allow the backend to boot (it may take about a minute)
+Then, open https://eecs4413-greendriveev-react.onrender.com to start using the application.
 
 ## Running Locally
 
