@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import './pages.css'
 import { login } from './cartAPI.js'
 
 /**
@@ -28,79 +27,53 @@ export default function LoginPage({ onBack, onLoggedIn, onGoToRegister }) {
   }
 
   return (
-    <main className="page-shell">
-      <section className="auth-card">
-        <button className="back-link" onClick={onBack} type="button">
-          ← Back to home
+    <main>
+      <p>
+        <button type="button" onClick={onBack}>
+          Back to home
         </button>
+      </p>
 
-        <div className="page-brand">GreenDrive<span>EV</span></div>
+      <h1>Sign in</h1>
 
-        <p className="eyebrow">WELCOME BACK</p>
-        <h1>Sign in</h1>
-        <p className="muted">
-          Welcome back! Sign in to continue your electric vehicle journey.
-        </p>
-
-        <form className="page-form" onSubmit={handleSubmit}>
-          <label htmlFor="email">Email address</label>
+      <form onSubmit={handleSubmit}>
+        <p>
+          <label htmlFor="email">Email </label>
           <input
             id="email"
             type="email"
-            placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
+        </p>
 
-          <label htmlFor="password">Password</label>
+        <p>
+          <label htmlFor="password">Password </label>
           <input
             id="password"
             type="password"
-            placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+        </p>
 
-          <div className="form-options">
-            <label className="remember-label">
-              <input type="checkbox" />
-              Remember me
-            </label>
-            <span className="text-link">Forgot password?</span>
-          </div>
+        {error && <p role="alert">{error}</p>}
 
-          {error && (
-            <p className="form-error" role="alert">
-              {error}
-            </p>
-          )}
-
-          <button className="primary-button" type="submit" disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-
-       <p className="muted small-text">
-          Don't have an account?{' '}
-          <button
-            type="button"
-            className="text-link"
-            onClick={onGoToRegister}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              font: 'inherit',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-            }}
-          >
-            Create account
+        <p>
+          <button type="submit" disabled={submitting}>
+            {submitting ? 'Signing in...' : 'Sign in'}
           </button>
         </p>
-      </section>
+      </form>
+
+      <p>
+        Don't have an account?{' '}
+        <button type="button" onClick={onGoToRegister}>
+          Create account
+        </button>
+      </p>
     </main>
   )
 }
