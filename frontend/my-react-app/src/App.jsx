@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import LoginPage from './LoginPage.jsx';
 import CartPage from './CartPage.jsx';
 import { addToCart, getCart } from './cartAPI.js';
@@ -27,10 +27,6 @@ const shuffleArray = (array) => {
 };
 
 function App() {
-  const [searchText, setSearchText] = useState('')
-  const [make, setMake] = useState('')
-  const [bodyStyle, setBodyStyle] = useState('')
-  const [budget, setBudget] = useState('')
   const [price, setPrice] = useState(48990)
   const [downPayment, setDownPayment] = useState(5000)
   const [rate, setRate] = useState(6.99)
@@ -129,6 +125,16 @@ function App() {
     }
   }
 
+  // Three random vehicles in the chosen category. Memoised so the list does not
+  // reshuffle every time something else on the page (e.g. the calculator) changes.
+  const featuredVehicles = useMemo(
+    () =>
+      shuffleArray(
+        vehicles.filter((v) => homeCategory === 'All' || v.bodyStyle === homeCategory)
+      ).slice(0, 3),
+    [vehicles, homeCategory]
+  )
+
   const principal = Math.max(0, Number(price) - Number(downPayment))
   const monthlyRate = Number(rate) / 100 / 12
 
@@ -201,438 +207,175 @@ function App() {
 
   return (
     <>
-      <header className="navbar">
-        <div className="wrap navinner">
-          <div className="brand">
-            <span>GreenDrive<em>EV</em></span>
-          </div>
+      <header>
+        <h1>GreenDriveEV</h1>
+        <p>Find your next electric drive.</p>
 
-          <nav className="navlinks">
-            <button type="button" className="navlink" 
-              onClick={() => setCurrentPage('catalog')} >Shop EVs </button>
-            <span className="navlink">Why GreenDrive</span>
-            <span className="navlink">Finance</span>
-            <span className="navlink">Reviews</span>
-          </nav>
-
-          <div className="navactions">
-            <button onClick={() => setCurrentPage('cart')} className="iconbtn" aria-label="Shopping cart">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              >
-                <path d="M3 4h2l2.2 11.2a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 9H6" />
-                <circle cx="10" cy="20" r="1" />
-                <circle cx="18" cy="20" r="1" />
-              </svg>
-              <span className="count">{userId ? cartCount : 0}</span>
+        <nav>
+          <button type="button" onClick={() => setCurrentPage('catalog')}>
+            Shop EVs
+          </button>{' '}
+          <button type="button" onClick={() => setCurrentPage('cart')}>
+            Cart ({userId ? cartCount : 0})
+          </button>{' '}
+          {userId ? (
+            <button type="button" onClick={handleLogout}>
+              Sign out
             </button>
-
-            <button className="btn btn-primary" onClick={() => setCurrentPage('catalog')}>
-              Explore inventory
-            </button>
-
-            {userId ? (
-              <button onClick={handleLogout} className="signin-btn">
-                Sign out
-              </button>
-            ) : (
-              <button onClick={() => setCurrentPage('login')} className="signin-btn">
+          ) : (
+            <>
+              <button type="button" onClick={() => setCurrentPage('login')}>
                 Sign in
+              </button>{' '}
+              <button type="button" onClick={() => setCurrentPage('register')}>
+                Register
               </button>
-            )}
-          </div>
-        </div>
+            </>
+          )}
+        </nav>
+        <hr />
       </header>
 
-      <main id="home">
-        <section className="hero">
-          <div className="wrap">
-            <div className="hero-panel">
-              <div className="hero-copy">
-                <div className="eyebrow">The electric difference</div>
+      <main>
+        <section>
+          <h2>Featured vehicles</h2>
 
-                <h1>
-                  Find your next <span>electric</span> drive.
-                </h1>
-
-                <p>
-                  Great EVs, honest information, and a buying experience designed
-                  around you. Make your next move a smarter one.
-                </p>
-
-                <div className="hero-ctas">
-                  <button className="btn btn-primary" onClick={() => setCurrentPage('catalog')}>
-                    Explore our EVs <span>↗</span>
-                  </button>
-
-                  <button className="btn btn-light">
-                    Why go electric?
-                  </button>
-                </div>
-
-                <div className="hero-proof">
-                  <div className="avatars">
-                    <i>JM</i>
-                    <i>AK</i>
-                    <i>SL</i>
-                    <i>+</i>
-                  </div>
-
-                  <span>
-                    <b>1,200+ happy drivers</b>
-                    <br />
-                    making the switch with confidence
-                  </span>
-                </div>
-              </div>
-
-              <div className="hero-visual"></div>
-            </div>
-          </div>
-        </section>
-
-        <section className="section" id="inventory">
-          <div className="wrap">
-            <div className="section-head">
-              <div>
-                <div className="eyebrow">
-                  Your next chapter starts here
-                </div>
-                <h2>Explore our electric lineup</h2>
-                <p>
-                  Handpicked electric vehicles for every kind of journey.
-                </p>
-              </div>
-
-              <button 
-                className="text-link" 
-                onClick={() => setCurrentPage('catalog')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                View all vehicles <span>→</span>
-              </button>
-            </div>
-
-            <div className="filterrow">
+          <p>
+            <label htmlFor="homeCategory">Body style </label>
+            <select
+              id="homeCategory"
+              value={homeCategory}
+              onChange={(e) => setHomeCategory(e.target.value)}
+            >
               {['All', 'SUV', 'Sedan', 'Hatchback', 'Truck'].map((category) => (
-                <button 
-                  key={category}
-                  className={`chip ${homeCategory === category ? 'active' : ''}`}
-                  onClick={() => setHomeCategory(category)}
-                >
-                  {category === 'All' ? 'All vehicles' : `Electric ${category}s`}
-                </button>
+                <option key={category} value={category}>
+                  {category}
+                </option>
               ))}
-            </div>
+            </select>{' '}
+            <button type="button" onClick={() => setCurrentPage('catalog')}>
+              View all vehicles
+            </button>
+          </p>
 
-            <div className="vehicle-grid" id="vehicleGrid">
-              {loadingVehicles ? (
-                <p>Loading vehicles...</p>
-              ) : vehicleError ? (
-                <p role="alert">{vehicleError}</p>
-              ) : vehicles.length === 0 ? (
-                <p>No vehicles found in the database.</p>
-              ) : (
-                // Shuffle the vehicles, filter by category, then take the first 3
-                shuffleArray(
-                  vehicles.filter(v => homeCategory === 'All' || v.bodyStyle === homeCategory)
-                ).slice(0, 3).map((vehicle) => (
-                  <article className="vehicle-card" key={vehicle.id}>
-                    {vehicle.imageUrl && (
-                      <img
-                        src={vehicle.imageUrl}
-                        alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                        className="vehicle-image"
-                        style={{ 
-                          width: '100%', 
-                          height: '200px', 
-                          objectFit: 'fill',
-                          borderTopLeftRadius: '8px',
-                          borderTopRightRadius: '8px'
-                        }}
-                      />
-                    )}
-
-                    <div className="vehicle-card-content">
-                      <h3>
-                        {vehicle.year} {vehicle.make} {vehicle.model}
-                      </h3>
-
-                      <p>{vehicle.bodyStyle || 'Electric vehicle'}</p>
-
-                      <strong>{money(vehicle.price)}</strong>
-
-                      <p>
-                        Mileage: {Number(vehicle.mileage).toLocaleString('en-CA')} km
-                      </p>
-
-                      {vehicle.history && <p>{vehicle.history}</p>}
-
-                      <button 
-                        type="button" 
-                        className="text-link" 
-                        onClick={() => {
-                          setSelectedVehicleId(vehicle.id);
-                          setCurrentPage('vehicleDetails');
-                        }}
-                        style={{ display: 'block', marginBottom: '10px' }}
-                      >
-                        View details →
-                      </button>
-
-                      <button
-                        type="button"
-                        className="btn btn-primary add-to-cart"
-                        disabled={addingVehicleId === vehicle.id}
-                        onClick={() => handleAddToCart(vehicle)}
-                      >
-                        {addingVehicleId === vehicle.id ? 'Adding…' : 'Add to cart'}
-                      </button>
-
-                      {cartNotice?.vehicleId === vehicle.id && (
-                        <p
-                          className={cartNotice.isError ? 'cart-notice error' : 'cart-notice'}
-                          role={cartNotice.isError ? 'alert' : 'status'}
-                        >
-                          {cartNotice.text}
-                        </p>
-                      )}
-                    </div>
-                  </article>
-                ))
-              )}
-            </div>
-          </div>
-        </section>
-
-        <section className="section" id="calculator">
-          <div className="wrap">
-            <div className="feature-panel">
-              <div>
-                <div className="eyebrow">
-                  Make the numbers make sense
-                </div>
-
-                <h2>
-                  Your EV should fit your life — and your budget.
-                </h2>
-
-                <p>
-                  Get a quick idea of what your monthly payment could look like.
-                  Adjust the numbers to explore an estimate that feels comfortable.
-                </p>
-
-                <div className="feature-list">
-                  <div><span className="check">✓</span> Flexible down payment</div>
-                  <div><span className="check">✓</span> Choose your term</div>
-                  <div><span className="check">✓</span> Clear monthly estimate</div>
-                  <div><span className="check">✓</span> No commitment</div>
-                </div>
-
-                <small style={{ fontSize: '10px', color: '#7a887f' }}>
-                  Illustrative estimate only. Actual financing terms may vary.
-                </small>
-              </div>
-
-              <div className="calculator">
-                <h3>Monthly payment calculator</h3>
-                <p>Personalize your estimate in seconds.</p>
-
-                <div className="calc-row">
-                  <div>
-                    <label className="calc-label" htmlFor="calcPrice">
-                      Vehicle price (CAD)
-                    </label>
-                    <input
-                      className="calc-input"
-                      id="calcPrice"
-                      type="number"
-                      min="0"
-                      value={price}
-                      onChange={(e) =>
-                        setPrice(Math.max(0, Number(e.target.value)))
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className="calc-label" htmlFor="calcDown">
-                      Down payment (CAD)
-                    </label>
-                    <input
-                      className="calc-input"
-                      id="calcDown"
-                      type="number"
-                      min="0"
-                      value={downPayment}
-                      onChange={(e) =>
-                        setDownPayment(Math.max(0, Number(e.target.value)))
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className="calc-label" htmlFor="calcRate">
-                      Interest rate (%)
-                    </label>
-                    <input
-                      className="calc-input"
-                      id="calcRate"
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      value={rate}
-                      onChange={(e) =>
-                        setRate(Math.max(0, Number(e.target.value)))
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className="calc-label" htmlFor="calcTerm">
-                      Loan term
-                    </label>
-                    <select
-                      className="calc-input"
-                      id="calcTerm"
-                      value={term}
-                      onChange={(e) => setTerm(Number(e.target.value))}
-                    >
-                      <option value="36">36 months</option>
-                      <option value="48">48 months</option>
-                      <option value="60">60 months</option>
-                      <option value="72">72 months</option>
-                      <option value="84">84 months</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="monthly">
-                  <div>
-                    <span>Estimated monthly payment</span>
-                    <strong id="monthlyAmount">{money(payment)}</strong>
-                  </div>
-                  <small>
-                    CAD / month
+          {loadingVehicles ? (
+            <p>Loading vehicles...</p>
+          ) : vehicleError ? (
+            <p role="alert">{vehicleError}</p>
+          ) : featuredVehicles.length === 0 ? (
+            <p>No vehicles found.</p>
+          ) : (
+            <ul>
+              {featuredVehicles.map((vehicle) => (
+                <li key={vehicle.id}>
+                  <h3>
+                    {vehicle.year} {vehicle.make} {vehicle.model}
+                  </h3>
+                  <p>
+                    {vehicle.bodyStyle || 'Electric vehicle'}
                     <br />
-                    before taxes &amp; fees
-                  </small>
-                </div>
-              </div>
-            </div>
-          </div>
+                    Price: {money(vehicle.price)}
+                    <br />
+                    Mileage: {Number(vehicle.mileage).toLocaleString('en-CA')} km
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedVehicleId(vehicle.id)
+                      setCurrentPage('vehicleDetails')
+                    }}
+                  >
+                    View details
+                  </button>{' '}
+                  {/* PB-15: add this vehicle to the cart */}
+                  <button
+                    type="button"
+                    disabled={addingVehicleId === vehicle.id}
+                    onClick={() => handleAddToCart(vehicle)}
+                  >
+                    {addingVehicleId === vehicle.id ? 'Adding...' : 'Add to cart'}
+                  </button>
+
+                  {cartNotice?.vehicleId === vehicle.id && (
+                    <p role={cartNotice.isError ? 'alert' : 'status'}>
+                      {cartNotice.text}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
-        <section className="section" id="reviews">
-          <div className="wrap">
-            <div className="section-head">
-              <div>
-                <div className="eyebrow">Good drives. Great stories.</div>
-                <h2>Made for the way you move.</h2>
-                <p>
-                  Buying an EV should feel exciting, not overwhelming.
-                </p>
-              </div>
+        <hr />
 
-              <span className="text-link">
-                Find your match <span>→</span>
-              </span>
-            </div>
+        <section>
+          <h2>Monthly payment calculator</h2>
+          <p>Adjust the numbers to estimate a monthly payment.</p>
 
-            <div className="review-grid">
-              <div className="testimonial">
-                <div className="stars">★★★★★</div>
-                <blockquote>
-                  “The team actually explained range and charging in a way that
-                  made sense for my commute. I felt confident, not pressured.”
-                </blockquote>
-                <div className="person">
-                  <div className="person-avatar">JM</div>
-                  <div>
-                    <strong>Jordan M.</strong>
-                    <small>Hyundai IONIQ 5 owner</small>
-                  </div>
-                </div>
-              </div>
+          <p>
+            <label htmlFor="calcPrice">Vehicle price (CAD) </label>
+            <input
+              id="calcPrice"
+              type="number"
+              min="0"
+              value={price}
+              onChange={(e) => setPrice(Math.max(0, Number(e.target.value)))}
+            />
+          </p>
 
-              <div className="testimonial">
-                <div className="stars">★★★★★</div>
-                <blockquote>
-                  “I could compare a few options side by side and understand what
-                  I was paying for. The whole process felt refreshingly simple.”
-                </blockquote>
-                <div className="person">
-                  <div className="person-avatar">SK</div>
-                  <div>
-                    <strong>Sarah K.</strong>
-                    <small>Tesla Model 3 owner</small>
-                  </div>
-                </div>
-              </div>
+          <p>
+            <label htmlFor="calcDown">Down payment (CAD) </label>
+            <input
+              id="calcDown"
+              type="number"
+              min="0"
+              value={downPayment}
+              onChange={(e) => setDownPayment(Math.max(0, Number(e.target.value)))}
+            />
+          </p>
 
-              <div className="testimonial">
-                <div className="stars">★★★★★</div>
-                <blockquote>
-                  “I was shopping for my first EV and had a lot of questions.
-                  I got straightforward answers and found a car that fits my family.”
-                </blockquote>
-                <div className="person">
-                  <div className="person-avatar">AL</div>
-                  <div>
-                    <strong>Alex L.</strong>
-                    <small>Kia EV6 owner</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <p>
+            <label htmlFor="calcRate">Interest rate (%) </label>
+            <input
+              id="calcRate"
+              type="number"
+              min="0"
+              step="0.1"
+              value={rate}
+              onChange={(e) => setRate(Math.max(0, Number(e.target.value)))}
+            />
+          </p>
+
+          <p>
+            <label htmlFor="calcTerm">Loan term </label>
+            <select
+              id="calcTerm"
+              value={term}
+              onChange={(e) => setTerm(Number(e.target.value))}
+            >
+              <option value="36">36 months</option>
+              <option value="48">48 months</option>
+              <option value="60">60 months</option>
+              <option value="72">72 months</option>
+              <option value="84">84 months</option>
+            </select>
+          </p>
+
+          <p>
+            Estimated monthly payment: <strong>{money(payment)}</strong> CAD / month
+            (before taxes and fees)
+          </p>
+          <p>
+            <small>Illustrative estimate only. Actual financing terms may vary.</small>
+          </p>
         </section>
       </main>
 
-      <footer className="footer">
-        <div className="wrap">
-          <div className="footer-grid">
-            <div>
-              <div className="brand">
-                <span>GreenDrive<em>EV</em></span>
-              </div>
-              <p>
-                A more thoughtful way to shop electric. Discover your next
-                vehicle with clear information, helpful tools, and a team that
-                puts you first.
-              </p>
-            </div>
-
-            <div>
-              <h4>Explore</h4>
-              <span>Shop all EVs</span>
-              <span>Financing calculator</span>
-              <span>Why GreenDrive</span>
-            </div>
-
-            <div>
-              <h4>Helpful links</h4>
-              <span>Compare vehicles</span>
-              <span>Payment estimates</span>
-              <span>Customer stories</span>
-            </div>
-
-            <div>
-              <h4>Get in touch</h4>
-              <span>hello@greendriveev.ca</span>
-              <span>Toronto, Ontario</span>
-              <span>Mon–Sat, 9am–6pm</span>
-            </div>
-          </div>
-
-          <div className="copyright">
-            <span>© 2026 GreenDriveEV. EECS4413-GroupC</span>
-            <span>Drive thoughtfully. Live electrically.</span>
-          </div>
-        </div>
+      <footer>
+        <hr />
+        <p>© 2026 GreenDriveEV. EECS4413-GroupC</p>
       </footer>
     </>
   )
