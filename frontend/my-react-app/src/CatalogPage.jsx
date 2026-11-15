@@ -143,7 +143,7 @@ export default function CatalogPage({
   }
 
   return (
-    <main className="wrap section">
+    <main>
       <nav aria-label="Catalogue navigation">
         <button type="button" onClick={onBack}>
           Back to home
@@ -246,8 +246,7 @@ export default function CatalogPage({
           </p>
 
           {result.vehicles.length > 0 && (
-            <div style={{ overflowX: 'auto' }}>
-              <table>
+            <table>
                 <caption>Catalogue results</caption>
                 <thead>
                   <tr>
@@ -299,8 +298,7 @@ export default function CatalogPage({
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+            </table>
           )}
         </>
       )}
