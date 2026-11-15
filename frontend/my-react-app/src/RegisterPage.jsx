@@ -7,7 +7,7 @@ export default function RegisterPage({ onBack, onGoToLogin }) {
     email: '',
     password: '',
   });
-  
+
   const [status, setStatus] = useState({
     loading: false,
     message: '',
@@ -45,7 +45,7 @@ export default function RegisterPage({ onBack, onGoToLogin }) {
           isError: true,
         });
       }
-    } catch (err) {
+    } catch {
       setStatus({
         loading: false,
         message: 'Could not reach the server.',
@@ -55,18 +55,18 @@ export default function RegisterPage({ onBack, onGoToLogin }) {
   };
 
   return (
-    <main className="wrap section" style={{ maxWidth: '400px', margin: '0 auto', paddingTop: '2rem' }}>
-      <nav aria-label="Navigation" style={{ marginBottom: '1rem' }}>
-        <button type="button" onClick={onBack} className="btn btn-light">
-          ← Back to Home
+    <main>
+      <p>
+        <button type="button" onClick={onBack}>
+          Back to home
         </button>
-      </nav>
+      </p>
 
       <h1>Register</h1>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
-        <div>
-          <label htmlFor="name" style={{ display: 'block', marginBottom: '0.5rem' }}>Name:</label>
+      <form onSubmit={handleSubmit}>
+        <p>
+          <label htmlFor="name">Name </label>
           <input
             id="name"
             type="text"
@@ -74,26 +74,22 @@ export default function RegisterPage({ onBack, onGoToLogin }) {
             maxLength="100"
             value={formData.name}
             onChange={handleChange}
-            className="calc-input"
-            style={{ width: '100%', padding: '0.5rem' }}
           />
-        </div>
+        </p>
 
-        <div>
-          <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem' }}>Email:</label>
+        <p>
+          <label htmlFor="email">Email </label>
           <input
             id="email"
             type="email"
             required
             value={formData.email}
             onChange={handleChange}
-            className="calc-input"
-            style={{ width: '100%', padding: '0.5rem' }}
           />
-        </div>
+        </p>
 
-        <div>
-          <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem' }}>Password (min 8):</label>
+        <p>
+          <label htmlFor="password">Password (min 8) </label>
           <input
             id="password"
             type="password"
@@ -101,37 +97,24 @@ export default function RegisterPage({ onBack, onGoToLogin }) {
             minLength="8"
             value={formData.password}
             onChange={handleChange}
-            className="calc-input"
-            style={{ width: '100%', padding: '0.5rem' }}
           />
-        </div>
+        </p>
 
-        <button type="submit" className="btn btn-primary" disabled={status.loading}>
-          {status.loading ? 'Registering...' : 'Register'}
-        </button>
+        <p>
+          <button type="submit" disabled={status.loading}>
+            {status.loading ? 'Registering...' : 'Register'}
+          </button>
+        </p>
       </form>
 
       {status.message && (
-        <p 
-          role={status.isError ? 'alert' : 'status'} 
-          style={{ 
-            marginTop: '1rem', 
-            color: status.isError ? '#dc2626' : '#16a34a',
-            fontWeight: 'bold'
-          }}
-        >
-          {status.message}
-        </p>
+        <p role={status.isError ? 'alert' : 'status'}>{status.message}</p>
       )}
 
-      <p style={{ marginTop: '2rem' }}>
-        <button 
-          type="button" 
-          onClick={onGoToLogin} 
-          className="text-link" 
-          style={{ background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
-        >
-          Already have an account? Login
+      <p>
+        Already have an account?{' '}
+        <button type="button" onClick={onGoToLogin}>
+          Login
         </button>
       </p>
     </main>
