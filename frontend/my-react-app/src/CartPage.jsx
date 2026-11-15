@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import './pages.css'
 import { getCart, updateCartItem, removeCartItem } from './cartAPI.js'
 
 // Formats a number as Canadian dollars with cents, e.g. $48,990.00.
@@ -10,11 +9,11 @@ const money = (amount) =>
   })
 
 /**
- * Shopping cart page.
+ * Shopping cart page (PB-16 edit quantity, PB-17 remove).
  *   user         logged-in user ({ userId, ... }) or null
  *   onBack       return to the home page
  *   onSignIn     go to the login page (shown when signed out)
- *   onCartChange called with the item count so the navbar badge stays in sync
+ *   onCartChange called with the item count so the cart count in the menu stays in sync
  */
 export default function CartPage({
   user,
@@ -32,7 +31,7 @@ export default function CartPage({
 
   const userId = user?.userId
 
-  // Stores a fresh cart and tells the parent the new count for the badge.
+  // Stores a fresh cart and tells the parent the new count.
   const applyCart = useCallback(
     (data) => {
       setCart(data)
@@ -83,144 +82,109 @@ export default function CartPage({
   const remove = (item) =>
     mutate(item.itemId, () => removeCartItem(userId, item.itemId))
 
-  // Picks which view to show: signed out / loading / empty / list of items.
-  const hasItems = cart.items.length > 0
-
   return (
-    <main className="page-shell">
-      <section className="cart-panel">
-        <button className="back-link" onClick={onBack} type="button">
-          ← Continue browsing
+    <main>
+      <p>
+        <button type="button" onClick={onBack}>
+          Continue browsing
         </button>
+      </p>
 
-        <p className="eyebrow">YOUR SELECTION</p>
-        <h1>Shopping cart</h1>
-        <p className="muted">
-          Review your selected electric vehicles before checkout.
-        </p>
+      <h1>Shopping cart</h1>
 
-        {error && (
-          <p className="form-error" role="alert">
-            {error}
-          </p>
-        )}
+      {error && <p role="alert">{error}</p>}
 
-        <div className="static-cart-layout">
-          {!user ? (
-            <div className="empty-cart">
-              <div className="empty-cart-icon">⌑</div>
-              <h2>Sign in to see your cart</h2>
-              <p className="muted">
-                Your cart is saved to your account. Sign in to add and manage
-                vehicles.
-              </p>
-              <button className="primary-button" type="button" onClick={onSignIn}>
-                Sign in
-              </button>
-            </div>
-          ) : loading ? (
-            <p className="muted">Loading your cart…</p>
-          ) : !hasItems ? (
-            <div className="empty-cart">
-              <div className="empty-cart-icon">⌑</div>
-              <h2>Your cart is waiting</h2>
-              <p className="muted">
-                You haven't added any vehicles yet. Explore our electric
-                vehicle collection to find your next ride.
-              </p>
-              <button className="primary-button" type="button" onClick={onBack}>
-                Browse vehicles
-              </button>
-            </div>
-          ) : (
-            <ul className="cart-lines">
+      {!user ? (
+        <>
+          <p>Please sign in to see your cart.</p>
+          <button type="button" onClick={onSignIn}>
+            Sign in
+          </button>
+        </>
+      ) : loading ? (
+        <p>Loading your cart...</p>
+      ) : cart.items.length === 0 ? (
+        <>
+          <p>Your cart is empty.</p>
+          <button type="button" onClick={onBack}>
+            Browse vehicles
+          </button>
+        </>
+      ) : (
+        <>
+          <table border="1" cellPadding="6">
+            <thead>
+              <tr>
+                <th>Vehicle</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
               {cart.items.map((item) => {
-                // Disable this row's controls while its request is in flight.
+                // Disable this row's buttons while its request is in flight.
                 const busy = busyItemId === item.itemId
                 const name = `${item.year} ${item.make} ${item.model}`
                 return (
-                  <li className="cart-line" key={item.itemId} aria-busy={busy}>
-                    {/* Show the photo if the vehicle has one, otherwise a placeholder box */}
-                    {item.imageUrl ? (
-                      <img className="cart-line-image" src={item.imageUrl} alt={name} />
-                    ) : (
-                      <div className="cart-line-image cart-line-placeholder">⌑</div>
-                    )}
-
-                    <div className="cart-line-info">
-                      <h3>{name}</h3>
-                      <p className="muted">{item.bodyStyle || 'Electric vehicle'}</p>
-                      <p className="cart-line-price">{money(item.price)} each</p>
-
-                      <div className="cart-line-controls">
-                        {/* Quantity stepper: − is disabled at 1 (use Remove to delete), + at the 99 cap */}
-                        <div className="qty-stepper" role="group" aria-label={`Quantity for ${name}`}>
-                          <button
-                            type="button"
-                            aria-label="Decrease quantity"
-                            disabled={busy || item.quantity <= 1}
-                            onClick={() => changeQuantity(item, item.quantity - 1)}
-                          >
-                            −
-                          </button>
-                          <span aria-live="polite">{item.quantity}</span>
-                          <button
-                            type="button"
-                            aria-label="Increase quantity"
-                            disabled={busy || item.quantity >= 99}
-                            onClick={() => changeQuantity(item, item.quantity + 1)}
-                          >
-                            +
-                          </button>
-                        </div>
-
-                        <button
-                          className="remove-button"
-                          type="button"
-                          disabled={busy}
-                          onClick={() => remove(item)}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-
-                    <strong className="cart-line-total">{money(item.lineTotal)}</strong>
-                  </li>
+                  <tr key={item.itemId}>
+                    <td>
+                      {name}
+                      <br />
+                      {item.bodyStyle || 'Electric vehicle'}
+                    </td>
+                    <td>{money(item.price)}</td>
+                    <td>
+                      {/* "-" is disabled at 1 (use Remove to delete), "+" at the 99 cap */}
+                      <button
+                        type="button"
+                        aria-label={`Decrease quantity of ${name}`}
+                        disabled={busy || item.quantity <= 1}
+                        onClick={() => changeQuantity(item, item.quantity - 1)}
+                      >
+                        -
+                      </button>{' '}
+                      {item.quantity}{' '}
+                      <button
+                        type="button"
+                        aria-label={`Increase quantity of ${name}`}
+                        disabled={busy || item.quantity >= 99}
+                        onClick={() => changeQuantity(item, item.quantity + 1)}
+                      >
+                        +
+                      </button>
+                    </td>
+                    <td>{money(item.lineTotal)}</td>
+                    <td>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => remove(item)}
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
                 )
               })}
-            </ul>
-          )}
+            </tbody>
+          </table>
 
           {/* Totals come from the server response, never calculated in the browser */}
-          <aside className="order-summary">
-            <h2>Order summary</h2>
-            <div className="summary-row">
-              <span>Items</span>
-              <strong>{cart.itemCount}</strong>
-            </div>
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <strong>{money(cart.subtotal)}</strong>
-            </div>
-            <div className="summary-row">
-              <span>Taxes</span>
-              <span>Calculated later</span>
-            </div>
-            <div className="summary-row total-row">
-              <span>Total</span>
-              <strong>{money(cart.subtotal)}</strong>
-            </div>
-            {/* Checkout is out of scope for these tickets */}
-            <button className="primary-button" type="button" disabled>
-              Proceed to checkout
-            </button>
-            <p className="muted small-text">
-              Checkout is not available in this preview.
-            </p>
-          </aside>
-        </div>
-      </section>
+          <h2>Order summary</h2>
+          <p>Items: {cart.itemCount}</p>
+          <p>
+            Subtotal: <strong>{money(cart.subtotal)}</strong> (taxes calculated later)
+          </p>
+          <button type="button" disabled>
+            Proceed to checkout
+          </button>
+          <p>
+            <small>Checkout is not available yet.</small>
+          </p>
+        </>
+      )}
     </main>
   )
 }
