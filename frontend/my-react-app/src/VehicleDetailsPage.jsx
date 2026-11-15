@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { API_BASE } from './apiConfig.js';
 
-// currency formatter from your CatalogPage
 const money = new Intl.NumberFormat('en-CA', {
   style: 'currency',
   currency: 'CAD',
@@ -10,7 +9,6 @@ const money = new Intl.NumberFormat('en-CA', {
 const number = new Intl.NumberFormat('en-CA');
 
 export default function VehicleDetailsPage({ vehicleId, onBack, onLogin }) {
-  
   const [result, setResult] = useState({
     loading: true,
     vehicle: null,
@@ -22,7 +20,8 @@ export default function VehicleDetailsPage({ vehicleId, onBack, onLogin }) {
     let active = true;
 
     if (!vehicleId) {
-      setResult({ loading: false, vehicle: null, error: 'Add ?id=<vehicle id> to the URL.' });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setResult({ loading: false, vehicle: null, error: 'No vehicle selected.' });
       return;
     }
 
@@ -31,7 +30,7 @@ export default function VehicleDetailsPage({ vehicleId, onBack, onLogin }) {
     fetch(`${API_BASE}/vehicles/${encodeURIComponent(vehicleId)}`, { signal: controller.signal })
       .then(async (response) => {
         const data = await response.json().catch(() => null);
-        
+
         if (!response.ok) {
           if (response.status === 404) throw new Error('Vehicle not found.');
           throw new Error(`Error ${response.status}: ${data?.message || ''}`);
@@ -45,9 +44,9 @@ export default function VehicleDetailsPage({ vehicleId, onBack, onLogin }) {
       })
       .catch((error) => {
         if (active && error.name !== 'AbortError') {
-          // Handle network errors gracefully like the original script
-          const errorMsg = error.message.includes('Error') || error.message.includes('not found') 
-            ? error.message 
+          // Show server errors as-is; anything else means we could not connect.
+          const errorMsg = error.message.includes('Error') || error.message.includes('not found')
+            ? error.message
             : 'Could not reach the server.';
           setResult({ loading: false, vehicle: null, error: errorMsg });
         }
@@ -70,7 +69,7 @@ export default function VehicleDetailsPage({ vehicleId, onBack, onLogin }) {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-    } catch (err) {
+    } catch {
       // ignore network errors, still forget the token locally
     }
     localStorage.removeItem('token');
@@ -81,33 +80,51 @@ export default function VehicleDetailsPage({ vehicleId, onBack, onLogin }) {
   const { loading, vehicle, error } = result;
 
   return (
-    <main className="wrap section">
+    <main>
+      <p>
+        <button type="button" onClick={onBack}>
+          Back to home
+        </button>{' '}
+        <button type="button" onClick={onLogin}>
+          Login
+        </button>{' '}
+        <button type="button" onClick={handleLogout}>
+          Logout
+        </button>
+      </p>
+
       <h1>Vehicle details</h1>
 
       {loading && <p role="status">Loading...</p>}
-      {error && <p role="alert" style={{ color: 'red' }}>{error}</p>}
+      {error && <p role="alert">{error}</p>}
 
       {vehicle && (
         <>
-          <table border="1" style={{ borderCollapse: 'collapse', marginBottom: '1rem' }}>
+          <table border="1" cellPadding="6">
             <tbody>
-              {['make', 'model', 'year', 'bodyStyle'].map((key) => (
-                <tr key={key}>
-                  <td style={{ padding: '0.5rem', fontWeight: 'bold', textTransform: 'capitalize' }}>
-                    {key === 'bodyStyle' ? 'Body style' : key}
-                  </td>
-                  <td style={{ padding: '0.5rem' }}>
-                    {vehicle[key] || 'N/A'}
-                  </td>
-                </tr>
-              ))}
               <tr>
-                <td style={{ padding: '0.5rem', fontWeight: 'bold' }}>Price</td>
-                <td style={{ padding: '0.5rem' }}>{money.format(vehicle.price)}</td>
+                <th scope="row">Make</th>
+                <td>{vehicle.make || 'N/A'}</td>
               </tr>
               <tr>
-                <td style={{ padding: '0.5rem', fontWeight: 'bold' }}>Mileage</td>
-                <td style={{ padding: '0.5rem' }}>{number.format(vehicle.mileage)} km</td>
+                <th scope="row">Model</th>
+                <td>{vehicle.model || 'N/A'}</td>
+              </tr>
+              <tr>
+                <th scope="row">Year</th>
+                <td>{vehicle.year || 'N/A'}</td>
+              </tr>
+              <tr>
+                <th scope="row">Body style</th>
+                <td>{vehicle.bodyStyle || 'N/A'}</td>
+              </tr>
+              <tr>
+                <th scope="row">Price</th>
+                <td>{money.format(vehicle.price)}</td>
+              </tr>
+              <tr>
+                <th scope="row">Mileage</th>
+                <td>{number.format(vehicle.mileage)} km</td>
               </tr>
             </tbody>
           </table>
@@ -116,18 +133,6 @@ export default function VehicleDetailsPage({ vehicleId, onBack, onLogin }) {
           <p>{vehicle.historyReport || 'No history report on file.'}</p>
         </>
       )}
-
-      <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <button type="button" onClick={handleLogout} className="btn btn-light">
-          Logout
-        </button>
-        <button type="button" onClick={onLogin} className="text-link">
-          Login
-        </button>
-        <button type="button" onClick={onBack} className="text-link">
-          Go Back
-        </button>
-      </div>
     </main>
   );
 }
