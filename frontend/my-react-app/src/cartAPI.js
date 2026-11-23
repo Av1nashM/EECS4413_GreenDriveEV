@@ -36,7 +36,11 @@ export const getCart = (userId) => request(`/cart?userId=${userId}`)
 export const addToCart = (userId, vehicleId, quantity = 1) =>
   request(`/cart/items?userId=${userId}`, {
     method: 'POST',
-    body: JSON.stringify({ vehicleId, quantity }),
+    body: JSON.stringify({
+      vehicleId,
+      quantity,
+      ...(configuration || {}),
+    }),
   })
 
 // PB-16: set a cart line to an exact quantity.

@@ -8,6 +8,17 @@ const money = (amount) =>
     currency: 'CAD',
   })
 
+  // Safely reads the saved customization JSON from the backend.
+  const parseCustomization = (json) => {
+    if (!json) return null
+
+    try {
+      return JSON.parse(json)
+    } catch {
+      return null
+    }
+  }
+
 /**
  * Shopping cart page (PB-16 edit quantity, PB-17 remove).
  *   user         logged-in user ({ userId, ... }) or null
@@ -127,14 +138,37 @@ export default function CartPage({
                 // Disable this row's buttons while its request is in flight.
                 const busy = busyItemId === item.itemId
                 const name = `${item.year} ${item.make} ${item.model}`
+                const customization = parseCustomization(item.customizationJson)
                 return (
                   <tr key={item.itemId}>
                     <td>
-                      {name}
+                      <strong>{name}</strong>
                       <br />
                       {item.bodyStyle || 'Electric vehicle'}
+
+                      {customization && (
+                        <>
+                          <p>Customization:</p>
+                          <ul>
+                            <li>Exterior: {customization.exterior}</li>
+                            <li>Interior: {customization.interior}</li>
+                            <li>Wheels: {customization.wheels}</li>
+                            <li>
+                              Accessories: {customization.accessories?.length
+                                ? customization.accessories.join(', ')
+                                : 'None'}
+                            </li>
+                            <li>
+                              Packages: {customization.packages?.length
+                                ? customization.packages.join(', ')
+                                : 'None'}
+                            </li>
+                          </ul>
+                          <p>Customization cost: {money(item.customizationCost ?? 0)}</p>
+                        </>
+                      )}
                     </td>
-                    <td>{money(item.price)}</td>
+                    <td>{money(item.configuredPrice ?? item.price)}</td>
                     <td>
                       {/* "-" is disabled at 1 (use Remove to delete), "+" at the 99 cap */}
                       <button

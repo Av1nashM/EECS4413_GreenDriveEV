@@ -104,26 +104,40 @@ function App() {
     setCurrentPage('home');
   }
 
-  // PB-15: add one of this vehicle; signed-out visitors are sent to the login page first.
-  const handleAddToCart = async (vehicle) => {
-    if (!userId) {
-      setCurrentPage('login')
-      return
-    }
-    setAddingVehicleId(vehicle.id)
-    setCartNotice(null)
-    try {
-      await addToCart(userId, vehicle.id, 1)
-      // Re-read the cart so the badge reflects the server's count.
-      const cart = await getCart(userId)
-      setCartCount(cart.itemCount)
-      setCartNotice({ vehicleId: vehicle.id, text: 'Added to cart ✓' })
-    } catch (error) {
-      setCartNotice({ vehicleId: vehicle.id, text: error.message, isError: true })
-    } finally {
-      setAddingVehicleId(null)
-    }
+  // PB-15: add a vehicle, optionally with customization.
+  const handleAddToCart = async (vehicle, configuration = null) => {
+  if (!userId) {
+    setCurrentPage('login')
+    return 'login-required'
   }
+
+  setAddingVehicleId(vehicle.id)
+  setCartNotice(null)
+
+  try {
+    await addToCart(userId, vehicle.id, 1, configuration)
+
+    const cart = await getCart(userId)
+    setCartCount(cart.itemCount)
+
+    setCartNotice({
+      vehicleId: vehicle.id,
+      text: 'Added to cart ✓',
+    })
+
+    return true
+  } catch (error) {
+    setCartNotice({
+      vehicleId: vehicle.id,
+      text: error.message,
+      isError: true,
+    })
+
+    return false
+  } finally {
+    setAddingVehicleId(null)
+  }
+}
 
   // Three random vehicles in the chosen category. Memoised so the list does not
   // reshuffle every time something else on the page (e.g. the calculator) changes.
@@ -201,6 +215,7 @@ function App() {
         vehicleId={selectedVehicleId}
         onBack={() => setCurrentPage('home')}
         onLogin={() => setCurrentPage('login')}
+        onAddToCart={handleAddToCart}
       />
     );
   }
