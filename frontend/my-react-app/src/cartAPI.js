@@ -33,7 +33,7 @@ async function request(path, options = {}) {
 export const getCart = (userId) => request(`/cart?userId=${userId}`)
 
 // PB-15: add a vehicle. Adding one that is already in the cart increases its quantity.
-export const addToCart = (userId, vehicleId, quantity = 1) =>
+export const addToCart = (userId, vehicleId, quantity = 1, configuration = null) =>
   request(`/cart/items?userId=${userId}`, {
     method: 'POST',
     body: JSON.stringify({
