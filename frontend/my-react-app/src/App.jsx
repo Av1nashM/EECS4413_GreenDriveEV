@@ -190,7 +190,10 @@ function App() {
     return (
       <CartPage
         user={user}
-        onBack={() => setCurrentPage('home')}
+        onBack={() => {
+        setCartNotice(null)
+        setCurrentPage('home')
+      }}
         onSignIn={() => setCurrentPage('login')}
         onCartChange={setCartCount}
       />
