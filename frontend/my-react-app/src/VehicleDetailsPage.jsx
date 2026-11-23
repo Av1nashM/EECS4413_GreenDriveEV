@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { API_BASE } from './apiConfig.js';
+import VehicleCustomizer from './VehicleCustomizer.jsx';
 
 const money = new Intl.NumberFormat('en-CA', {
   style: 'currency',
@@ -8,7 +9,7 @@ const money = new Intl.NumberFormat('en-CA', {
 
 const number = new Intl.NumberFormat('en-CA');
 
-export default function VehicleDetailsPage({ vehicleId, onBack, onLogin }) {
+export default function VehicleDetailsPage({ vehicleId, onBack, onLogin, onAddToCart }) {
   const [result, setResult] = useState({
     loading: true,
     vehicle: null,
@@ -131,6 +132,7 @@ export default function VehicleDetailsPage({ vehicleId, onBack, onLogin }) {
 
           <h2>Vehicle history report</h2>
           <p>{vehicle.historyReport || 'No history report on file.'}</p>
+          <VehicleCustomizer vehicle={vehicle} onAddToCart={onAddToCart} />
         </>
       )}
     </main>
