@@ -14,7 +14,6 @@ const accidentLabels = {
   UNKNOWN: 'Unknown',
 }
 
-const [comparison, setComparison] = useState([])
 const MAX_COMPARE = 3
 
 function VehicleDetails({ vehicleId, onClose }) {
@@ -88,7 +87,23 @@ function VehicleDetails({ vehicleId, onClose }) {
   )
 }
 
-function toggleComparison(vehicle) {
+export default function CatalogPage({
+  onBack,
+  onViewCart,
+  onAddToCart,
+  addingVehicleId,
+  cartNotice,
+}) {
+  const [query, setQuery] = useState({})
+  const [comparison, setComparison] = useState([])
+  const [selectedId, setSelectedId] = useState(null)
+  const [result, setResult] = useState({
+    loading: true,
+    vehicles: [],
+    error: '',
+  })
+
+  function toggleComparison(vehicle) {
   setComparison((current) => {
     const alreadySelected = current.some(
       (item) => item.id === vehicle.id
@@ -105,21 +120,6 @@ function toggleComparison(vehicle) {
     return [...current, vehicle]
   })
 }
-
-export default function CatalogPage({
-  onBack,
-  onViewCart,
-  onAddToCart,
-  addingVehicleId,
-  cartNotice,
-}) {
-  const [query, setQuery] = useState({})
-  const [selectedId, setSelectedId] = useState(null)
-  const [result, setResult] = useState({
-    loading: true,
-    vehicles: [],
-    error: '',
-  })
 
   useEffect(() => {
     const controller = new AbortController()
