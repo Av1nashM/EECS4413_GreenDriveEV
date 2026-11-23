@@ -14,6 +14,9 @@ const accidentLabels = {
   UNKNOWN: 'Unknown',
 }
 
+const [comparison, setComparison] = useState([])
+const MAX_COMPARE = 3
+
 function VehicleDetails({ vehicleId, onClose }) {
   const [result, setResult] = useState({
     loading: true,
@@ -83,6 +86,24 @@ function VehicleDetails({ vehicleId, onClose }) {
       )}
     </section>
   )
+}
+
+function toggleComparison(vehicle) {
+  setComparison((current) => {
+    const alreadySelected = current.some(
+      (item) => item.id === vehicle.id
+    )
+
+    if (alreadySelected) {
+      return current.filter((item) => item.id !== vehicle.id)
+    }
+
+    if (current.length >= MAX_COMPARE) {
+      return current
+    }
+
+    return [...current, vehicle]
+  })
 }
 
 export default function CatalogPage({
@@ -281,6 +302,19 @@ export default function CatalogPage({
                         {' '}
                         <button
                           type="button"
+                          onClick={() => toggleComparison(vehicle)}
+                          disabled={
+                            !comparison.some((item) => item.id === vehicle.id) &&
+                            comparison.length >= MAX_COMPARE
+                          }
+                        >
+                          {comparison.some((item) => item.id === vehicle.id)
+                            ? 'Remove comparison'
+                            : 'Compare'}
+                        </button>
+                        {' '}
+                        <button
+                          type="button"
                           disabled={addingVehicleId != null}
                           onClick={() => onAddToCart(vehicle)}
                         >
@@ -301,6 +335,82 @@ export default function CatalogPage({
             </table>
           )}
         </>
+      )}
+
+      {comparison.length > 0 && (
+        <section aria-labelledby="comparison-heading">
+          <h2 id="comparison-heading">
+            Vehicle comparison ({comparison.length}/{MAX_COMPARE})
+          </h2>
+
+          <p>
+            Select at least two vehicles to compare their specifications.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => setComparison([])}
+          >
+            Clear comparison
+          </button>
+
+          {comparison.length >= 2 && (
+            <table>
+              <caption>Side-by-side vehicle comparison</caption>
+
+              <thead>
+                <tr>
+                  <th scope="col">Specification</th>
+
+                  {comparison.map((vehicle) => (
+                    <th scope="col" key={vehicle.id}>
+                      {vehicle.year} {vehicle.make} {vehicle.model}
+                      <br />
+                      <button
+                        type="button"
+                        onClick={() => toggleComparison(vehicle)}
+                      >
+                        Remove
+                      </button>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                {[
+                  {
+                    label: 'Body style',
+                    value: (v) => v.bodyStyle || 'Not available',
+                  },
+                  {
+                    label: 'Price',
+                    value: (v) => money.format(v.price),
+                  },
+                  {
+                    label: 'Mileage',
+                    value: (v) => `${number.format(v.mileage)} km`,
+                  },
+                  {
+                    label: 'Vehicle history',
+                    value: (v) =>
+                      v.history || v.historyReport || 'Not available',
+                  },
+                ].map((field) => (
+                  <tr key={field.label}>
+                    <th scope="row">{field.label}</th>
+
+                    {comparison.map((vehicle) => (
+                      <td key={vehicle.id}>
+                        {field.value(vehicle)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
       )}
 
       {selectedId !== null && (

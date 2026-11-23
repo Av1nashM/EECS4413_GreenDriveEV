@@ -4,15 +4,7 @@ package ca.yorku.greendriveev.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(
-    name = "cart_items",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_cart_items_cart_vehicle",
-            columnNames = {"cart_id", "vehicle_id"}
-        )
-    }
-)
+@Table(name = "cart_items")
 public class CartItem {
 
     @Id
@@ -37,6 +29,16 @@ public class CartItem {
 
     @Column(nullable = false)
     private int quantity = 1;
+
+    // PB10: Vehicle customization information
+    @Column(name = "customization_json", columnDefinition = "TEXT")
+    private String customizationJson;
+
+    @Column(name = "customization_cost", nullable = false)
+    private double customizationCost = 0.0;
+
+    @Column(name = "customization_key", nullable = false, length = 64)
+    private String customizationKey = "DEFAULT";
 
     public CartItem() {}
 
@@ -70,5 +72,30 @@ public class CartItem {
     
     public void setQuantity(int quantity) { 
         this.quantity = quantity; 
+    }
+
+    // PB10 getters and setters
+    public String getCustomizationJson() {
+        return customizationJson;
+    }
+
+    public void setCustomizationJson(String customizationJson) {
+        this.customizationJson = customizationJson;
+    }
+
+    public double getCustomizationCost() {
+        return customizationCost;
+    }
+
+    public void setCustomizationCost(double customizationCost) {
+        this.customizationCost = customizationCost;
+    }
+
+    public String getCustomizationKey() {
+        return customizationKey;
+    }
+
+    public void setCustomizationKey(String customizationKey) {
+        this.customizationKey = customizationKey;
     }
 }
